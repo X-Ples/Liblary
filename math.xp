@@ -12,7 +12,7 @@ pub const LN2: f64       = 0.6931471805599453;
 pub const LN10: f64      = 2.302585092994046;
 pub const LOG2_E: f64    = 1.4426950408889634;
 pub const LOG10_E: f64   = 0.4342944819032518;
-pub const EULER_GAMMA: f64 = 0.5772156649015329; 
+pub const EULER_GAMMA: f64 = 0.5772156649015329;
 pub const DEG2RAD: f64   = 0.017453292519943295;
 pub const RAD2DEG: f64   = 57.29577951308232;
 pub const EPSILON: f64   = 2.220446049250313e-16;
@@ -24,7 +24,6 @@ pub const PLANCK: f64    = 6.62607015e-34;
 pub const BOLTZMANN: f64 = 1.380649e-23;
 pub const AVOGADRO: f64  = 6.02214076e23;
 pub const I64_MAX: i64   = 9223372036854775807;
-
 
 pub fn sign(x: f64) -> f64 {
     if x > 0.0 { return 1.0; }
@@ -66,7 +65,7 @@ pub fn fmod(a: f64, b: f64) -> f64 { return a - b * floor(a / b); }
 
 pub fn mod_i(a: i64, b: i64) -> i64 {
     r := a % b;
-    if r != 0 && ((r < 0) != (b < 0)) { 
+    if r != 0 && ((r < 0) != (b < 0)) {
         r = r + b;
     }
     return r;
@@ -87,12 +86,12 @@ pub fn approx_eq(a: f64, b: f64, tol: f64) -> bool { return abs(a - b) <= tol; }
 
 pub fn is_nan(x: f64) -> bool { return x != x; }
 
-pub fn is_inf(x: f64) -> bool { 
-    return x > 1.7976931348623157e308 or x < -1.7976931348623157e308; 
+pub fn is_inf(x: f64) -> bool {
+    return x > 1.7976931348623157e308 or x < -1.7976931348623157e308;
 }
 
-pub fn is_finite(x: f64) -> bool { 
-    return !is_nan(x) and !is_inf(x); 
+pub fn is_finite(x: f64) -> bool {
+    return !is_nan(x) and !is_inf(x);
 }
 
 pub fn hypot(a: f64, b: f64) -> f64 {
@@ -112,32 +111,32 @@ pub fn cbrt(x: f64) -> f64 {
 }
 
 pub fn root_n(x: f64, n: i64) -> Result<f64, string> {
-    if n == 0 { return Err("root_n: n tidak boleh 0"); }
+    if n == 0 { return Err("root_n: n must not be 0"); }
     if x < 0.0 {
-        if n % 2 == 0 { return Err("root_n: akar genap dari bilangan negatif"); }
+        if n % 2 == 0 { return Err("root_n: even root of negative number"); }
         return Ok(-pow(-x, 1.0 / (n as f64)));
     }
     return Ok(pow(x, 1.0 / (n as f64)));
 }
 
 pub fn safe_sqrt(x: f64) -> Result<f64, string> {
-    if x < 0.0 { return Err("safe_sqrt: input negatif"); }
+    if x < 0.0 { return Err("safe_sqrt: negative input"); }
     return Ok(sqrt(x));
 }
 
 pub fn safe_ln(x: f64) -> Result<f64, string> {
-    if x <= 0.0 { return Err("safe_ln: input harus > 0"); }
+    if x <= 0.0 { return Err("safe_ln: input must be > 0"); }
     return Ok(ln(x));
 }
 
 pub fn safe_div(a: f64, b: f64) -> Result<f64, string> {
-    if b == 0.0 { return Err("safe_div: pembagian dengan nol"); }
+    if b == 0.0 { return Err("safe_div: division by zero"); }
     return Ok(a / b);
 }
 
 pub fn log_base(x: f64, base: f64) -> Result<f64, string> {
-    if x <= 0.0 { return Err("log_base: x harus > 0"); }
-    if base <= 0.0 || base == 1.0 { return Err("log_base: basis tidak valid"); }
+    if x <= 0.0 { return Err("log_base: x must be > 0"); }
+    if base <= 0.0 || base == 1.0 { return Err("log_base: invalid base"); }
     return Ok(ln(x) / ln(base));
 }
 
@@ -192,7 +191,7 @@ pub fn sigmoid(x: f64) -> f64 {
     return e / (1.0 + e);
 }
 pub fn logit(p: f64) -> Result<f64, string> {
-    if p <= 0.0 || p >= 1.0 { return Err("logit: p harus di (0,1)"); }
+    if p <= 0.0 || p >= 1.0 { return Err("logit: p must be in (0,1)"); }
     return Ok(ln(p / (1.0 - p)));
 }
 pub fn relu(x: f64) -> f64 { return max(0.0, x); }
@@ -212,7 +211,6 @@ pub fn fast_sqrt(x: f64) -> f64 { return __builtin_fast_sqrt(x); }
 pub fn fast_ln(x: f64) -> f64   { return __builtin_fast_ln(x); }
 pub fn fast_exp(x: f64) -> f64  { return __builtin_fast_exp(x); }
 pub fn fast_log(x: f64) -> f64  { return __builtin_fast_log(x); }
-
 
 pub fn radians(deg: f64) -> f64 { return deg * DEG2RAD; }
 pub fn degrees(rad: f64) -> f64 { return rad * RAD2DEG; }
@@ -246,12 +244,12 @@ pub fn asinh(x: f64) -> f64 {
 }
 
 pub fn acosh(x: f64) -> Result<f64, string> {
-    if x < 1.0 { return Err("acosh: x harus >= 1"); }
+    if x < 1.0 { return Err("acosh: x must be >= 1"); }
     return Ok(ln(x + sqrt(x * x - 1.0)));
 }
 
 pub fn atanh(x: f64) -> Result<f64, string> {
-    if x <= -1.0 || x >= 1.0 { return Err("atanh: x harus di (-1,1)"); }
+    if x <= -1.0 || x >= 1.0 { return Err("atanh: x must be in (-1,1)"); }
     return Ok(0.5 * ln((1.0 + x) / (1.0 - x)));
 }
 
@@ -263,7 +261,6 @@ pub fn lerp_angle(a: f64, b: f64, t: f64) -> f64 { return a + angle_diff(a, b) *
 
 pub fn versin(x: f64) -> f64 { return 1.0 - cos(x); }
 pub fn haversin(x: f64) -> f64 { s := sin(x / 2.0); return s * s; }
-
 
 pub fn gcd(a: i64, b: i64) -> i64 {
     x := abs(a);
@@ -305,9 +302,9 @@ pub fn ext_gcd(a: i64, b: i64) -> Egcd {
 }
 
 pub fn mod_inverse(a: i64, m: i64) -> Result<i64, string> {
-    if m <= 1 { return Err("mod_inverse: modulus harus > 1"); }
+    if m <= 1 { return Err("mod_inverse: modulus must be > 1"); }
     e := ext_gcd(mod_i(a, m), m);
-    if e.g != 1 { return Err("mod_inverse: a dan m tidak koprima"); }
+    if e.g != 1 { return Err("mod_inverse: a and m are not coprime"); }
     return Ok(mod_i(e.x, m));
 }
 
@@ -324,8 +321,8 @@ pub fn mul_mod(a: i64, b: i64, m: i64) -> i64 {
 }
 
 pub fn pow_mod(base: i64, exp_: i64, m: i64) -> Result<i64, string> {
-    if m <= 0 { return Err("pow_mod: modulus harus > 0"); }
-    if exp_ < 0 { return Err("pow_mod: eksponen negatif"); }
+    if m <= 0 { return Err("pow_mod: modulus must be > 0"); }
+    if exp_ < 0 { return Err("pow_mod: negative exponent"); }
     if m == 1 { return Ok(0); }
     res := 1;
     b := mod_i(base, m);
@@ -339,7 +336,7 @@ pub fn pow_mod(base: i64, exp_: i64, m: i64) -> Result<i64, string> {
 }
 
 pub fn pow_int(base: i64, exp_: i64) -> Result<i64, string> {
-    if exp_ < 0 { return Err("pow_int: eksponen negatif"); }
+    if exp_ < 0 { return Err("pow_int: negative exponent"); }
     r := 1;
     b := base;
     e := exp_;
@@ -352,11 +349,11 @@ pub fn pow_int(base: i64, exp_: i64) -> Result<i64, string> {
 }
 
 pub fn isqrt(n: i64) -> Result<i64, string> {
-    if n < 0 { return Err("isqrt: n negatif"); }
+    if n < 0 { return Err("isqrt: negative n"); }
     if n < 2 { return Ok(n); }
     x := floor(sqrt(n as f64)) as i64;
-    loop x * x > n { x -= 1; }
-    loop (x + 1) * (x + 1) <= n { x += 1; }
+    loop x * x > n { x = x - 1; }
+    loop (x + 1) * (x + 1) <= n { x = x + 1; }
     return Ok(x);
 }
 
@@ -375,7 +372,7 @@ pub fn is_prime(n: i64) -> bool {
     i := 5;
     loop i * i <= n {
         if n % i == 0 || n % (i + 2) == 0 { return false; }
-        i += 6;
+        i = i + 6;
     }
     return true;
 }
@@ -383,7 +380,7 @@ pub fn is_prime(n: i64) -> bool {
 pub fn next_prime(n: i64) -> i64 {
     c := n + 1;
     if c < 2 { c = 2; }
-    loop !is_prime(c) { c += 1; }
+    loop !is_prime(c) { c = c + 1; }
     return c;
 }
 
@@ -391,9 +388,9 @@ pub fn prev_prime(n: i64) -> Result<i64, string> {
     c := n - 1;
     loop c >= 2 {
         if is_prime(c) { return Ok(c); }
-        c -= 1;
+        c = c - 1;
     }
-    return Err("prev_prime: tidak ada prima lebih kecil");
+    return Err("prev_prime: no smaller prime exists");
 }
 
 pub fn primes_up_to(n: i64) {
@@ -407,9 +404,9 @@ pub fn primes_up_to(n: i64) {
     loop p * p <= n {
         if flags[p] {
             k := p * p;
-            loop k <= n { flags[k] = false; k += p; }
+            loop k <= n { flags[k] = false; k = k + p; }
         }
-        p += 1;
+        p = p + 1;
     }
     for i in 2..(n + 1) {
         if flags[i] { push(out, i); }
@@ -427,7 +424,7 @@ pub fn prime_factors(n: i64) {
     d := 3;
     loop d * d <= m {
         loop m % d == 0 { push(out, d); m = m / d; }
-        d += 2;
+        d = d + 2;
     }
     if m > 1 { push(out, m); }
     return out;
@@ -443,7 +440,7 @@ pub fn euler_phi(n: i64) -> i64 {
             loop m % p == 0 { m = m / p; }
             result = result - result / p;
         }
-        p += 1;
+        p = p + 1;
     }
     if m > 1 { result = result - result / m; }
     return result;
@@ -473,7 +470,7 @@ pub fn is_perfect_number(n: i64) -> bool {
 pub fn digit_sum(n: i64) -> i64 {
     m := abs(n);
     s := 0;
-    loop m > 0 { s += m % 10; m = m / 10; }
+    loop m > 0 { s = s + m % 10; m = m / 10; }
     return s;
 }
 
@@ -481,7 +478,7 @@ pub fn digit_count(n: i64) -> i64 {
     if n == 0 { return 1; }
     m := abs(n);
     c := 0;
-    loop m > 0 { c += 1; m = m / 10; }
+    loop m > 0 { c = c + 1; m = m / 10; }
     return c;
 }
 
@@ -498,19 +495,19 @@ pub fn is_palindrome_num(n: i64) -> bool {
 }
 
 pub fn collatz_steps(n: i64) -> Result<i64, string> {
-    if n < 1 { return Err("collatz_steps: n harus >= 1"); }
+    if n < 1 { return Err("collatz_steps: n must be >= 1"); }
     x := n;
     steps := 0;
     loop x != 1 {
         if x % 2 == 0 { x = x / 2; } else { x = 3 * x + 1; }
-        steps += 1;
+        steps = steps + 1;
     }
     return Ok(steps);
 }
 
 pub fn fibonacci(n: i64) -> Result<i64, string> {
-    if n < 0 { return Err("fibonacci: n negatif"); }
-    if n > 92 { return Err("fibonacci: n > 92 overflow i64"); }
+    if n < 0 { return Err("fibonacci: negative n"); }
+    if n > 92 { return Err("fibonacci: n > 92 overflows i64"); }
     a := 0;
     b := 1;
     for i in 0..n { t := a + b; a = b; b = t; }
@@ -520,31 +517,30 @@ pub fn fibonacci(n: i64) -> Result<i64, string> {
 pub fn fibonacci_f64(n: f64) -> f64 { return round(pow(PHI, n) / SQRT5()); }
 fn SQRT5() -> f64 { return 2.23606797749979; }
 
-
 pub fn factorial(n: i64) -> Result<i64, string> {
-    if n < 0 { return Err("factorial: n negatif"); }
-    if n > 20 { return Err("factorial: n > 20 overflow i64 (pakai factorial_f64)"); }
+    if n < 0 { return Err("factorial: negative n"); }
+    if n > 20 { return Err("factorial: n > 20 overflows i64 (use factorial_f64)"); }
     r := 1;
     for i in 2..(n + 1) { r = r * i; }
     return Ok(r);
 }
 
 pub fn factorial_f64(n: i64) -> Result<f64, string> {
-    if n < 0 { return Err("factorial_f64: n negatif"); }
-    if n > 170 { return Err("factorial_f64: n > 170 overflow f64"); }
+    if n < 0 { return Err("factorial_f64: negative n"); }
+    if n > 170 { return Err("factorial_f64: n > 170 overflows f64"); }
     return Ok(round(gamma((n as f64) + 1.0)));
 }
 
 pub fn double_factorial(n: i64) -> Result<i64, string> {
-    if n < 0 { return Err("double_factorial: n negatif"); }
+    if n < 0 { return Err("double_factorial: negative n"); }
     r := 1;
     k := n;
-    loop k > 1 { r = r * k; k -= 2; }
+    loop k > 1 { r = r * k; k = k - 2; }
     return Ok(r);
 }
 
 pub fn binomial(n: i64, k: i64) -> Result<i64, string> {
-    if n < 0 || k < 0 || k > n { return Err("binomial: butuh 0 <= k <= n"); }
+    if n < 0 || k < 0 || k > n { return Err("binomial: requires 0 <= k <= n"); }
     kk := min(k, n - k);
     r := 1;
     for i in 0..kk {
@@ -554,21 +550,21 @@ pub fn binomial(n: i64, k: i64) -> Result<i64, string> {
 }
 
 pub fn permutations(n: i64, k: i64) -> Result<i64, string> {
-    if n < 0 || k < 0 || k > n { return Err("permutations: butuh 0 <= k <= n"); }
+    if n < 0 || k < 0 || k > n { return Err("permutations: requires 0 <= k <= n"); }
     r := 1;
     for i in 0..k { r = r * (n - i); }
     return Ok(r);
 }
 
 pub fn catalan(n: i64) -> Result<i64, string> {
-    if n < 0 { return Err("catalan: n negatif"); }
-    if n > 33 { return Err("catalan: n > 33 overflow i64"); }
+    if n < 0 { return Err("catalan: negative n"); }
+    if n > 33 { return Err("catalan: n > 33 overflows i64"); }
     c := binomial(2 * n, n)?;
     return Ok(c / (n + 1));
 }
 
 pub fn stirling2(n: i64, k: i64) -> Result<i64, string> {
-    if n < 0 || k < 0 || k > n { return Err("stirling2: butuh 0 <= k <= n"); }
+    if n < 0 || k < 0 || k > n { return Err("stirling2: requires 0 <= k <= n"); }
     if n == 0 && k == 0 { return Ok(1); }
     if k == 0 { return Ok(0); }
     prev := [];
@@ -607,7 +603,7 @@ pub fn ln_gamma(x: f64) -> f64 {
           0.00000015056327351493116];
     z := x - 1.0;
     a := c[0];
-    for i in 1..9 { a += c[i] / (z + (i as f64)); }
+    for i in 1..9 { a = a + c[i] / (z + (i as f64)); }
     t := z + 7.5;
     return 0.5 * ln(TAU) + (z + 0.5) * ln(t) - t + ln(a);
 }
@@ -630,9 +626,9 @@ pub fn erf(x: f64) -> f64 {
     n := 0;
     loop n < 300 {
         term = term * x2 / ((2 * n + 3) as f64);
-        total += term;
+        total = total + term;
         if term < 1e-17 * total { break; }
-        n += 1;
+        n = n + 1;
     }
     r := (2.0 / SQRT_PI) * exp(-ax * ax) * total;
     return sign(x) * r;
@@ -643,19 +639,19 @@ pub fn erfc(x: f64) -> f64 { return 1.0 - erf(x); }
 pub fn digamma(x: f64) -> f64 {
     v := x;
     r := 0.0;
-    loop v < 6.0 { r -= 1.0 / v; v += 1.0; }
+    loop v < 6.0 { r = r - 1.0 / v; v = v + 1.0; }
     f := 1.0 / (v * v);
     return r + ln(v) - 0.5 / v
         - f * (1.0/12.0 - f * (1.0/120.0 - f * (1.0/252.0 - f * (1.0/240.0 - f / 132.0))));
 }
 
 pub fn zeta(s: f64) -> Result<f64, string> {
-    if s <= 1.0 { return Err("zeta: s harus > 1"); }
+    if s <= 1.0 { return Err("zeta: s must be > 1"); }
     n := 20;
     total := 0.0;
-    for k in 1..n { total += pow(k as f64, -s); }
+    for k in 1..n { total = total + pow(k as f64, -s); }
     nn := n as f64;
-    total += pow(nn, 1.0 - s) / (s - 1.0) + 0.5 * pow(nn, -s)
+    total = total + pow(nn, 1.0 - s) / (s - 1.0) + 0.5 * pow(nn, -s)
            + s * pow(nn, -s - 1.0) / 12.0
            - s * (s + 1.0) * (s + 2.0) * pow(nn, -s - 3.0) / 720.0;
     return Ok(total);
@@ -720,7 +716,7 @@ pub fn sorted(xs) {
         loop j > 0 {
             if out[j - 1] <= key { break; }
             out[j] = out[j - 1];
-            j -= 1;
+            j = j - 1;
         }
         out[j] = key;
     }
@@ -729,7 +725,7 @@ pub fn sorted(xs) {
 
 pub fn min_of(xs) -> Result<f64, string> {
     n := len(xs) as i64;
-    if n == 0 { return Err("min_of: array kosong"); }
+    if n == 0 { return Err("min_of: empty array"); }
     m := xs[0];
     for i in 1..n { if xs[i] < m { m = xs[i]; } }
     return Ok(m);
@@ -737,7 +733,7 @@ pub fn min_of(xs) -> Result<f64, string> {
 
 pub fn max_of(xs) -> Result<f64, string> {
     n := len(xs) as i64;
-    if n == 0 { return Err("max_of: array kosong"); }
+    if n == 0 { return Err("max_of: empty array"); }
     m := xs[0];
     for i in 1..n { if xs[i] > m { m = xs[i]; } }
     return Ok(m);
@@ -751,43 +747,43 @@ pub fn range_of(xs) -> Result<f64, string> {
 
 pub fn mean(xs) -> Result<f64, string> {
     n := len(xs) as i64;
-    if n == 0 { return Err("mean: array kosong"); }
+    if n == 0 { return Err("mean: empty array"); }
     return Ok(sum(xs) / (n as f64));
 }
 
 pub fn geometric_mean(xs) -> Result<f64, string> {
     n := len(xs) as i64;
-    if n == 0 { return Err("geometric_mean: array kosong"); }
+    if n == 0 { return Err("geometric_mean: empty array"); }
     acc := 0.0;
     for i in 0..n {
-        if xs[i] <= 0.0 { return Err("geometric_mean: semua nilai harus > 0"); }
-        acc += ln(xs[i]);
+        if xs[i] <= 0.0 { return Err("geometric_mean: all values must be > 0"); }
+        acc = acc + ln(xs[i]);
     }
     return Ok(exp(acc / (n as f64)));
 }
 
 pub fn harmonic_mean(xs) -> Result<f64, string> {
     n := len(xs) as i64;
-    if n == 0 { return Err("harmonic_mean: array kosong"); }
+    if n == 0 { return Err("harmonic_mean: empty array"); }
     acc := 0.0;
     for i in 0..n {
-        if xs[i] == 0.0 { return Err("harmonic_mean: ada nilai 0"); }
-        acc += 1.0 / xs[i];
+        if xs[i] == 0.0 { return Err("harmonic_mean: contains zero value"); }
+        acc = acc + 1.0 / xs[i];
     }
     return Ok((n as f64) / acc);
 }
 
 pub fn rms(xs) -> Result<f64, string> {
     n := len(xs) as i64;
-    if n == 0 { return Err("rms: array kosong"); }
+    if n == 0 { return Err("rms: empty array"); }
     acc := 0.0;
-    for i in 0..n { acc += xs[i] * xs[i]; }
+    for i in 0..n { acc = acc + xs[i] * xs[i]; }
     return Ok(sqrt(acc / (n as f64)));
 }
 
 pub fn median(xs) -> Result<f64, string> {
     n := len(xs) as i64;
-    if n == 0 { return Err("median: array kosong"); }
+    if n == 0 { return Err("median: empty array"); }
     s := sorted(xs);
     if n % 2 == 1 { return Ok(s[n / 2]); }
     return Ok((s[n / 2 - 1] + s[n / 2]) / 2.0);
@@ -795,8 +791,8 @@ pub fn median(xs) -> Result<f64, string> {
 
 pub fn percentile(xs, p: f64) -> Result<f64, string> {
     n := len(xs) as i64;
-    if n == 0 { return Err("percentile: array kosong"); }
-    if p < 0.0 || p > 100.0 { return Err("percentile: p harus di [0,100]"); }
+    if n == 0 { return Err("percentile: empty array"); }
+    if p < 0.0 || p > 100.0 { return Err("percentile: p must be in [0,100]"); }
     s := sorted(xs);
     rank := (p / 100.0) * ((n - 1) as f64);
     lo := floor(rank) as i64;
@@ -813,11 +809,11 @@ pub fn iqr(xs) -> Result<f64, string> {
 
 pub fn variance(xs, sample: bool) -> Result<f64, string> {
     n := len(xs) as i64;
-    if n == 0 { return Err("variance: array kosong"); }
-    if sample && n < 2 { return Err("variance: sampel butuh >= 2 data"); }
+    if n == 0 { return Err("variance: empty array"); }
+    if sample && n < 2 { return Err("variance: sample requires >= 2 data points"); }
     m := mean(xs)?;
     acc := 0.0;
-    for i in 0..n { d := xs[i] - m; acc += d * d; }
+    for i in 0..n { d := xs[i] - m; acc = acc + d * d; }
     denom := n as f64;
     if sample { denom = denom - 1.0; }
     return Ok(acc / denom);
@@ -832,9 +828,9 @@ pub fn skewness(xs) -> Result<f64, string> {
     n := len(xs) as i64;
     m := mean(xs)?;
     s := std_dev(xs, false)?;
-    if s == 0.0 { return Err("skewness: simpangan baku 0"); }
+    if s == 0.0 { return Err("skewness: standard deviation is 0"); }
     acc := 0.0;
-    for i in 0..n { z := (xs[i] - m) / s; acc += z * z * z; }
+    for i in 0..n { z := (xs[i] - m) / s; acc = acc + z * z * z; }
     return Ok(acc / (n as f64));
 }
 
@@ -842,21 +838,21 @@ pub fn kurtosis(xs) -> Result<f64, string> {
     n := len(xs) as i64;
     m := mean(xs)?;
     s := std_dev(xs, false)?;
-    if s == 0.0 { return Err("kurtosis: simpangan baku 0"); }
+    if s == 0.0 { return Err("kurtosis: standard deviation is 0"); }
     acc := 0.0;
-    for i in 0..n { z := (xs[i] - m) / s; acc += z * z * z * z; }
+    for i in 0..n { z := (xs[i] - m) / s; acc = acc + z * z * z * z; }
     return Ok(acc / (n as f64) - 3.0);
 }
 
 pub fn covariance(xs, ys, sample: bool) -> Result<f64, string> {
     n := len(xs) as i64;
-    if n != (len(ys) as i64) { return Err("covariance: panjang array beda"); }
-    if n == 0 { return Err("covariance: array kosong"); }
-    if sample && n < 2 { return Err("covariance: sampel butuh >= 2 data"); }
+    if n != (len(ys) as i64) { return Err("covariance: array lengths differ"); }
+    if n == 0 { return Err("covariance: empty array"); }
+    if sample && n < 2 { return Err("covariance: sample requires >= 2 data points"); }
     mx := mean(xs)?;
     my := mean(ys)?;
     acc := 0.0;
-    for i in 0..n { acc += (xs[i] - mx) * (ys[i] - my); }
+    for i in 0..n { acc = acc + (xs[i] - mx) * (ys[i] - my); }
     denom := n as f64;
     if sample { denom = denom - 1.0; }
     return Ok(acc / denom);
@@ -866,7 +862,7 @@ pub fn correlation(xs, ys) -> Result<f64, string> {
     c := covariance(xs, ys, false)?;
     sx := std_dev(xs, false)?;
     sy := std_dev(ys, false)?;
-    if sx == 0.0 || sy == 0.0 { return Err("correlation: varians 0"); }
+    if sx == 0.0 || sy == 0.0 { return Err("correlation: variance is 0"); }
     return Ok(c / (sx * sy));
 }
 
@@ -874,8 +870,8 @@ pub struct LinReg { slope: f64; intercept: f64; r2: f64; }
 
 pub fn linear_regression(xs, ys) -> Result<LinReg, string> {
     n := len(xs) as i64;
-    if n != (len(ys) as i64) { return Err("linear_regression: panjang array beda"); }
-    if n < 2 { return Err("linear_regression: butuh >= 2 titik"); }
+    if n != (len(ys) as i64) { return Err("linear_regression: array lengths differ"); }
+    if n < 2 { return Err("linear_regression: requires >= 2 points"); }
     mx := mean(xs)?;
     my := mean(ys)?;
     sxx := 0.0;
@@ -884,11 +880,11 @@ pub fn linear_regression(xs, ys) -> Result<LinReg, string> {
     for i in 0..n {
         dx := xs[i] - mx;
         dy := ys[i] - my;
-        sxx += dx * dx;
-        sxy += dx * dy;
-        syy += dy * dy;
+        sxx = sxx + dx * dx;
+        sxy = sxy + dx * dy;
+        syy = syy + dy * dy;
     }
-    if sxx == 0.0 { return Err("linear_regression: semua x sama"); }
+    if sxx == 0.0 { return Err("linear_regression: all x are equal"); }
     slope := sxy / sxx;
     r2 := 1.0;
     if syy != 0.0 { r2 = (sxy * sxy) / (sxx * syy); }
@@ -926,7 +922,7 @@ pub fn cumsum(xs) {
     n := len(xs) as i64;
     out := [];
     acc := 0.0;
-    for i in 0..n { acc += xs[i]; push(out, acc); }
+    for i in 0..n { acc = acc + xs[i]; push(out, acc); }
     return out;
 }
 
@@ -935,10 +931,10 @@ pub fn moving_average(xs, window: i64) {
     out := [];
     if window < 1 || window > n { return out; }
     acc := 0.0;
-    for i in 0..window { acc += xs[i]; }
+    for i in 0..window { acc = acc + xs[i]; }
     push(out, acc / (window as f64));
     for i in window..n {
-        acc += xs[i] - xs[i - window];
+        acc = acc + xs[i] - xs[i - window];
         push(out, acc / (window as f64));
     }
     return out;
@@ -992,7 +988,7 @@ pub fn vec_cross(a: vec3, b: vec3) -> vec3 {
 
 pub fn vec_normalize(a: vec3) -> Result<vec3, string> {
     l := sqrt(a .x a);
-    if l == 0.0 { return Err("vec_normalize: vektor nol"); }
+    if l == 0.0 { return Err("vec_normalize: zero vector"); }
     return Ok(a / l);
 }
 
@@ -1002,14 +998,14 @@ pub fn vec_reflect(v: vec3, n: vec3) -> vec3 { return v - n * (2.0 * (v .x n)); 
 
 pub fn vec_project(a: vec3, onto: vec3) -> Result<vec3, string> {
     d := onto .x onto;
-    if d == 0.0 { return Err("vec_project: vektor tujuan nol"); }
+    if d == 0.0 { return Err("vec_project: target vector is zero"); }
     return Ok(onto * ((a .x onto) / d));
 }
 
 pub fn vec_angle(a: vec3, b: vec3) -> Result<f64, string> {
     la := sqrt(a .x a);
     lb := sqrt(b .x b);
-    if la == 0.0 || lb == 0.0 { return Err("vec_angle: vektor nol"); }
+    if la == 0.0 || lb == 0.0 { return Err("vec_angle: zero vector"); }
     return Ok(acos(clamp((a .x b) / (la * lb), -1.0, 1.0)));
 }
 
@@ -1032,7 +1028,7 @@ pub fn vec2_from_polar(r: f64, theta: f64) -> vec2 { return [r * cos(theta), r *
 
 pub fn vec2_normalize(a: vec2) -> Result<vec2, string> {
     l := sqrt(a .x a);
-    if l == 0.0 { return Err("vec2_normalize: vektor nol"); }
+    if l == 0.0 { return Err("vec2_normalize: zero vector"); }
     return Ok(a / l);
 }
 
@@ -1041,23 +1037,23 @@ pub fn vec4_len(a: vec4) -> f64 { return sqrt(a .x a); }
 
 pub fn dot_arr(a, b) -> Result<f64, string> {
     n := len(a) as i64;
-    if n != (len(b) as i64) { return Err("dot_arr: dimensi beda"); }
+    if n != (len(b) as i64) { return Err("dot_arr: dimension mismatch"); }
     acc := 0.0;
-    for i in 0..n { acc += a[i] * b[i]; }
+    for i in 0..n { acc = acc + a[i] * b[i]; }
     return Ok(acc);
 }
 
 pub fn norm_arr(a) -> f64 {
     n := len(a) as i64;
     acc := 0.0;
-    for i in 0..n { acc += a[i] * a[i]; }
+    for i in 0..n { acc = acc + a[i] * a[i]; }
     return sqrt(acc);
 }
 
 pub fn norm1_arr(a) -> f64 {
     n := len(a) as i64;
     acc := 0.0;
-    for i in 0..n { acc += abs(a[i]); }
+    for i in 0..n { acc = acc + abs(a[i]); }
     return acc;
 }
 
@@ -1070,9 +1066,9 @@ pub fn norm_inf_arr(a) -> f64 {
 
 pub fn dist_arr(a, b) -> Result<f64, string> {
     n := len(a) as i64;
-    if n != (len(b) as i64) { return Err("dist_arr: dimensi beda"); }
+    if n != (len(b) as i64) { return Err("dist_arr: dimension mismatch"); }
     acc := 0.0;
-    for i in 0..n { d := a[i] - b[i]; acc += d * d; }
+    for i in 0..n { d := a[i] - b[i]; acc = acc + d * d; }
     return Ok(sqrt(acc));
 }
 
@@ -1101,10 +1097,9 @@ pub fn cosine_similarity(a, b) -> Result<f64, string> {
     d := dot_arr(a, b)?;
     na := norm_arr(a);
     nb := norm_arr(b);
-    if na == 0.0 || nb == 0.0 { return Err("cosine_similarity: vektor nol"); }
+    if na == 0.0 || nb == 0.0 { return Err("cosine_similarity: zero vector"); }
     return Ok(d / (na * nb));
 }
-
 
 pub struct Complex { re: f64; im: f64; }
 
@@ -1148,7 +1143,7 @@ pub fn c_arg(a: Complex) -> f64 { return atan2(a.im, a.re); }
 
 pub fn c_div(a: Complex, b: Complex) -> Result<Complex, string> {
     d := b.re * b.re + b.im * b.im;
-    if d == 0.0 { return Err("c_div: pembagian dengan nol"); }
+    if d == 0.0 { return Err("c_div: division by zero"); }
     z := Complex { re: (a.re * b.re + a.im * b.im) / d, im: (a.im * b.re - a.re * b.im) / d };
     return Ok(z);
 }
@@ -1161,7 +1156,7 @@ pub fn c_exp(a: Complex) -> Complex {
 
 pub fn c_ln(a: Complex) -> Result<Complex, string> {
     r := c_abs(a);
-    if r == 0.0 { return Err("c_ln: ln(0) tak terdefinisi"); }
+    if r == 0.0 { return Err("c_ln: ln(0) is undefined"); }
     z := Complex { re: ln(r), im: c_arg(a) };
     return Ok(z);
 }
@@ -1177,7 +1172,7 @@ pub fn c_pow_int(a: Complex, n: i64) -> Result<Complex, string> {
     r := c_abs(a);
     if r == 0.0 {
         if n > 0 { return Ok(c_new(0.0, 0.0)); }
-        return Err("c_pow_int: 0^n dengan n <= 0");
+        return Err("c_pow_int: 0^n with n <= 0");
     }
     nf := n as f64;
     return Ok(c_from_polar(pow(r, nf), nf * c_arg(a)));
@@ -1187,7 +1182,7 @@ pub fn c_sin(a: Complex) -> Complex { return c_new(sin(a.re) * cosh(a.im), cos(a
 pub fn c_cos(a: Complex) -> Complex { return c_new(cos(a.re) * cosh(a.im), -sin(a.re) * sinh(a.im)); }
 
 pub fn solve_quadratic(a: f64, b: f64, c: f64) -> Result<[Complex; 2], string> {
-    if a == 0.0 { return Err("solve_quadratic: a = 0 (bukan kuadrat)"); }
+    if a == 0.0 { return Err("solve_quadratic: a = 0 (not quadratic)"); }
     disc := b * b - 4.0 * c * a;
     if disc >= 0.0 {
         q := -0.5 * (b + sign(b + 0.0000000000000001) * sqrt(disc));
@@ -1219,7 +1214,7 @@ pub fn mat_zeros(rows: i64, cols: i64) {
 
 pub fn mat_trace(a, n: i64) -> f64 {
     t := 0.0;
-    for i in 0..n { t += a[i * n + i]; }
+    for i in 0..n { t = t + a[i * n + i]; }
     return t;
 }
 
@@ -1236,7 +1231,7 @@ pub fn mat_mul_flat(a, b, r: i64, k: i64, c: i64) {
     for i in 0..r {
         for j in 0..c {
             acc := 0.0;
-            for t in 0..k { acc += a[i * k + t] * b[t * c + j]; }
+            for t in 0..k { acc = acc + a[i * k + t] * b[t * c + j]; }
             push(out, acc);
         }
     }
@@ -1247,7 +1242,7 @@ pub fn mat_vec_mul(a, v, rows: i64, cols: i64) {
     out := [];
     for i in 0..rows {
         acc := 0.0;
-        for j in 0..cols { acc += a[i * cols + j] * v[j]; }
+        for j in 0..cols { acc = acc + a[i * cols + j] * v[j]; }
         push(out, acc);
     }
     return out;
@@ -1283,7 +1278,7 @@ pub fn mat_det(a, n: i64) -> f64 {
         det = det * m[c * n + c];
         for r in (c + 1)..n {
             f := m[r * n + c] / m[c * n + c];
-            for k in c..n { m[r * n + k] -= f * m[c * n + k]; }
+            for k in c..n { m[r * n + k] = m[r * n + k] - f * m[c * n + k]; }
         }
     }
     return det;
@@ -1303,7 +1298,7 @@ pub fn solve_linear(a, b, n: i64) {
             v := abs(m[r * w + c]);
             if v > best { best = v; p = r; }
         }
-        if best < 1e-12 { return Err("solve_linear: matriks singular"); }
+        if best < 1e-12 { return Err("solve_linear: singular matrix"); }
         if p != c {
             for k in 0..w {
                 t := m[c * w + k];
@@ -1313,7 +1308,7 @@ pub fn solve_linear(a, b, n: i64) {
         }
         for r in (c + 1)..n {
             f := m[r * w + c] / m[c * w + c];
-            for k in c..w { m[r * w + k] -= f * m[c * w + k]; }
+            for k in c..w { m[r * w + k] = m[r * w + k] - f * m[c * w + k]; }
         }
     }
     x := [];
@@ -1321,9 +1316,9 @@ pub fn solve_linear(a, b, n: i64) {
     i := n - 1;
     loop i >= 0 {
         acc := m[i * w + n];
-        for j in (i + 1)..n { acc -= m[i * w + j] * x[j]; }
+        for j in (i + 1)..n { acc = acc - m[i * w + j] * x[j]; }
         x[i] = acc / m[i * w + i];
-        i -= 1;
+        i = i - 1;
     }
     return Ok(x);
 }
@@ -1344,7 +1339,7 @@ pub fn mat_inverse(a, n: i64) {
             v := abs(m[r * w + c]);
             if v > best { best = v; p = r; }
         }
-        if best < 1e-12 { return Err("mat_inverse: matriks singular"); }
+        if best < 1e-12 { return Err("mat_inverse: singular matrix"); }
         if p != c {
             for k in 0..w {
                 t := m[c * w + k];
@@ -1357,7 +1352,7 @@ pub fn mat_inverse(a, n: i64) {
         for r in 0..n {
             if r != c {
                 f := m[r * w + c];
-                for k in 0..w { m[r * w + k] -= f * m[c * w + k]; }
+                for k in 0..w { m[r * w + k] = m[r * w + k] - f * m[c * w + k]; }
             }
         }
     }
@@ -1369,7 +1364,7 @@ pub fn mat_inverse(a, n: i64) {
 }
 
 pub fn mat_pow(a, n: i64, p: i64) {
-    if p < 0 { return Err("mat_pow: pangkat negatif (pakai mat_inverse dulu)"); }
+    if p < 0 { return Err("mat_pow: negative exponent (use mat_inverse first)"); }
     result := mat_identity(n);
     base := a;
     e := p;
@@ -1412,10 +1407,9 @@ pub fn power_iteration(a, n: i64, iters: i64) -> f64 {
         for i in 0..n { v[i] = w[i] / nrm; }
         lambda = nrm;
     }
-  
     av := mat_vec_mul(a, v, n, n);
     acc := 0.0;
-    for i in 0..n { acc += v[i] * av[i]; }
+    for i in 0..n { acc = acc + v[i] * av[i]; }
     return acc;
 }
 
@@ -1442,23 +1436,23 @@ pub fn gradient(f, x, h: f64) {
 }
 
 pub fn integrate_trapezoid(f, a: f64, b: f64, n: i64) -> Result<f64, string> {
-    if n < 1 { return Err("integrate_trapezoid: n harus >= 1"); }
+    if n < 1 { return Err("integrate_trapezoid: n must be >= 1"); }
     h := (b - a) / (n as f64);
     acc := 0.5 * (f(a) + f(b));
-    for i in 1..n { acc += f(a + (i as f64) * h); }
+    for i in 1..n { acc = acc + f(a + (i as f64) * h); }
     return Ok(acc * h);
 }
 
 pub fn integrate_simpson(f, a: f64, b: f64, n: i64) -> Result<f64, string> {
-    if n < 2 { return Err("integrate_simpson: n harus >= 2"); }
+    if n < 2 { return Err("integrate_simpson: n must be >= 2"); }
     m := n;
-    if m % 2 != 0 { m += 1; }
+    if m % 2 != 0 { m = m + 1; }
     h := (b - a) / (m as f64);
     acc := f(a) + f(b);
     for i in 1..m {
         w := 2.0;
         if i % 2 == 1 { w = 4.0; }
-        acc += w * f(a + (i as f64) * h);
+        acc = acc + w * f(a + (i as f64) * h);
     }
     return Ok(acc * h / 3.0);
 }
@@ -1469,7 +1463,7 @@ pub fn integrate_gauss5(f, a: f64, b: f64) -> f64 {
     c := (b - a) / 2.0;
     d := (b + a) / 2.0;
     acc := 0.0;
-    for i in 0..5 { acc += ws[i] * f(c * xs[i] + d); }
+    for i in 0..5 { acc = acc + ws[i] * f(c * xs[i] + d); }
     return acc * c;
 }
 
@@ -1498,14 +1492,14 @@ pub fn root_bisect(f, a: f64, b: f64, tol: f64) -> Result<f64, string> {
     fhi := f(hi);
     if flo == 0.0 { return Ok(lo); }
     if fhi == 0.0 { return Ok(hi); }
-    if flo * fhi > 0.0 { return Err("root_bisect: f(a) dan f(b) harus beda tanda"); }
+    if flo * fhi > 0.0 { return Err("root_bisect: f(a) and f(b) must have opposite signs"); }
     iter := 0;
     loop iter < 200 {
         mid := (lo + hi) / 2.0;
         fm := f(mid);
         if fm == 0.0 || (hi - lo) / 2.0 < tol { return Ok(mid); }
         if flo * fm < 0.0 { hi = mid; } else { lo = mid; flo = fm; }
-        iter += 1;
+        iter = iter + 1;
     }
     return Ok((lo + hi) / 2.0);
 }
@@ -1516,12 +1510,12 @@ pub fn root_newton(f, x0: f64, tol: f64, max_iter: i64) -> Result<f64, string> {
         fx := f(x);
         if abs(fx) < tol { return Ok(x); }
         d := derivative(f, x, 0.000001);
-        if d == 0.0 { return Err("root_newton: turunan nol"); }
+        if d == 0.0 { return Err("root_newton: derivative is zero"); }
         nx := x - fx / d;
         if abs(nx - x) < tol { return Ok(nx); }
         x = nx;
     }
-    return Err("root_newton: tidak konvergen");
+    return Err("root_newton: did not converge");
 }
 
 pub fn root_secant(f, x0: f64, x1: f64, tol: f64, max_iter: i64) -> Result<f64, string> {
@@ -1530,13 +1524,13 @@ pub fn root_secant(f, x0: f64, x1: f64, tol: f64, max_iter: i64) -> Result<f64, 
     fa := f(a);
     fb := f(b);
     for i in 0..max_iter {
-        if abs(fb - fa) < 1e-300 { return Err("root_secant: pembagi nol"); }
+        if abs(fb - fa) < 1e-300 { return Err("root_secant: zero divisor"); }
         c := b - fb * (b - a) / (fb - fa);
         if abs(c - b) < tol { return Ok(c); }
         a = b; fa = fb;
         b = c; fb = f(c);
     }
-    return Err("root_secant: tidak konvergen");
+    return Err("root_secant: did not converge");
 }
 
 pub fn minimize_golden(f, a: f64, b: f64, tol: f64) -> f64 {
@@ -1576,7 +1570,7 @@ pub fn ode_rk4(f, x0: f64, y0: f64, h: f64, n: i64) {
     push(ys, y);
     for i in 0..n {
         y = rk4_step(f, x, y, h);
-        x += h;
+        x = x + h;
         push(ys, y);
     }
     return ys;
@@ -1586,7 +1580,7 @@ pub fn poly_eval(coeffs, x: f64) -> f64 {
     n := len(coeffs) as i64;
     r := 0.0;
     i := n - 1;
-    loop i >= 0 { r = r * x + coeffs[i]; i -= 1; }
+    loop i >= 0 { r = r * x + coeffs[i]; i = i - 1; }
     return r;
 }
 
@@ -1611,7 +1605,7 @@ pub fn poly_mul(a, b) {
     out := [];
     for i in 0..(na + nb - 1) { push(out, 0.0); }
     for i in 0..na {
-        for j in 0..nb { out[i + j] += a[i] * b[j]; }
+        for j in 0..nb { out[i + j] = out[i + j] + a[i] * b[j]; }
     }
     return out;
 }
@@ -1623,8 +1617,8 @@ pub fn poly_add(a, b) {
     out := [];
     for i in 0..n {
         v := 0.0;
-        if i < na { v += a[i]; }
-        if i < nb { v += b[i]; }
+        if i < na { v = v + a[i]; }
+        if i < nb { v = v + b[i]; }
         push(out, v);
     }
     return out;
@@ -1638,15 +1632,15 @@ pub fn lagrange(xs, ys, x: f64) -> f64 {
         for j in 0..n {
             if j != i { term = term * (x - xs[j]) / (xs[i] - xs[j]); }
         }
-        total += term;
+        total = total + term;
     }
     return total;
 }
 
 pub fn interp_linear(xs, ys, x: f64) -> Result<f64, string> {
     n := len(xs) as i64;
-    if n < 2 { return Err("interp_linear: butuh >= 2 titik"); }
-    if x < xs[0] || x > xs[n - 1] { return Err("interp_linear: x di luar rentang"); }
+    if n < 2 { return Err("interp_linear: requires >= 2 points"); }
+    if x < xs[0] || x > xs[n - 1] { return Err("interp_linear: x out of range"); }
     for i in 1..n {
         if x <= xs[i] {
             t := (x - xs[i - 1]) / (xs[i] - xs[i - 1]);
@@ -1658,7 +1652,7 @@ pub fn interp_linear(xs, ys, x: f64) -> Result<f64, string> {
 
 pub fn sum_series(f, a: i64, b: i64) -> f64 {
     acc := 0.0;
-    for k in a..(b + 1) { acc += f(k as f64); }
+    for k in a..(b + 1) { acc = acc + f(k as f64); }
     return acc;
 }
 
@@ -1682,8 +1676,8 @@ pub fn ellipse_perimeter(a: f64, b: f64) -> f64 {
 }
 
 pub fn triangle_area_heron(a: f64, b: f64, c: f64) -> Result<f64, string> {
-    if a <= 0.0 || b <= 0.0 || c <= 0.0 { return Err("heron: sisi harus > 0"); }
-    if a + b <= c || a + c <= b || b + c <= a { return Err("heron: ketaksamaan segitiga dilanggar"); }
+    if a <= 0.0 || b <= 0.0 || c <= 0.0 { return Err("heron: sides must be > 0"); }
+    if a + b <= c || a + c <= b || b + c <= a { return Err("heron: triangle inequality violated"); }
     s := (a + b + c) / 2.0;
     return Ok(sqrt(s * (s - a) * (s - b) * (s - c)));
 }
@@ -1702,11 +1696,11 @@ pub fn manhattan(x1: f64, y1: f64, x2: f64, y2: f64) -> f64 { return abs(x2 - x1
 
 pub fn polygon_area(xs, ys) -> Result<f64, string> {
     n := len(xs) as i64;
-    if n < 3 || n != (len(ys) as i64) { return Err("polygon_area: butuh >= 3 titik, xs/ys sama panjang"); }
+    if n < 3 || n != (len(ys) as i64) { return Err("polygon_area: requires >= 3 points with xs/ys equal length"); }
     acc := 0.0;
     for i in 0..n {
         j := (i + 1) % n;
-        acc += xs[i] * ys[j] - xs[j] * ys[i];
+        acc = acc + xs[i] * ys[j] - xs[j] * ys[i];
     }
     return Ok(abs(acc) / 2.0);
 }
@@ -1716,7 +1710,7 @@ pub fn polygon_perimeter(xs, ys) -> f64 {
     acc := 0.0;
     for i in 0..n {
         j := (i + 1) % n;
-        acc += hypot(xs[j] - xs[i], ys[j] - ys[i]);
+        acc = acc + hypot(xs[j] - xs[i], ys[j] - ys[i]);
     }
     return acc;
 }
@@ -1751,8 +1745,8 @@ pub fn to_spherical(x: f64, y: f64, z: f64) -> vec3 {
 
 pub fn rng_next(state: u64) -> u64 {
     s := state;
-    s *% 6364136223846793005;
-    s +% 1442695040888963407;
+    s = s *% 6364136223846793005;
+    s = s +% 1442695040888963407;
     return s;
 }
 
@@ -1802,7 +1796,7 @@ pub fn shuffle(xs) {
         t := out[i];
         out[i] = out[j];
         out[j] = t;
-        i -= 1;
+        i = i - 1;
     }
     return out;
 }
@@ -1812,7 +1806,7 @@ pub fn monte_carlo_pi(samples: i64) -> f64 {
     for i in 0..samples {
         x := random_f64();
         y := random_f64();
-        if x * x + y * y <= 1.0 { inside += 1; }
+        if x * x + y * y <= 1.0 { inside = inside + 1; }
     }
     return 4.0 * (inside as f64) / (samples as f64);
 }
@@ -1833,21 +1827,21 @@ pub fn future_value_annuity(pmt: f64, rate: f64, n: i64) -> f64 {
 pub fn present_value(fv: f64, rate: f64, n: i64) -> f64 { return fv / pow(1.0 + rate, n as f64); }
 
 pub fn loan_payment(principal: f64, rate_per_period: f64, n: i64) -> Result<f64, string> {
-    if n <= 0 { return Err("loan_payment: n harus > 0"); }
+    if n <= 0 { return Err("loan_payment: n must be > 0"); }
     if rate_per_period == 0.0 { return Ok(principal / (n as f64)); }
     r := rate_per_period;
     return Ok(principal * r / (1.0 - pow(1.0 + r, -(n as f64))));
 }
 
 pub fn cagr(start: f64, end_: f64, years: f64) -> Result<f64, string> {
-    if start <= 0.0 || years <= 0.0 { return Err("cagr: start dan years harus > 0"); }
+    if start <= 0.0 || years <= 0.0 { return Err("cagr: start and years must be > 0"); }
     return Ok(pow(end_ / start, 1.0 / years) - 1.0);
 }
 
 pub fn npv(rate: f64, cashflows) -> f64 {
     n := len(cashflows) as i64;
     acc := 0.0;
-    for t in 0..n { acc += cashflows[t] / pow(1.0 + rate, t as f64); }
+    for t in 0..n { acc = acc + cashflows[t] / pow(1.0 + rate, t as f64); }
     return acc;
 }
 
@@ -1856,7 +1850,7 @@ pub fn irr(cashflows) -> Result<f64, string> {
     hi := 10.0;
     flo := npv(lo, cashflows);
     fhi := npv(hi, cashflows);
-    if flo * fhi > 0.0 { return Err("irr: tidak ada akar di rentang [-99%, 1000%]"); }
+    if flo * fhi > 0.0 { return Err("irr: no root in range [-99%, 1000%]"); }
     for i in 0..200 {
         mid := (lo + hi) / 2.0;
         fm := npv(mid, cashflows);
@@ -1885,7 +1879,7 @@ pub fn escape_velocity(mass: f64, radius: f64) -> f64 { return sqrt(2.0 * G_GRAV
 pub fn projectile_range(v0: f64, angle_rad: f64) -> f64 { return v0 * v0 * sin(2.0 * angle_rad) / G_EARTH; }
 pub fn pendulum_period(length_m: f64) -> f64 { return TAU * sqrt(length_m / G_EARTH); }
 pub fn lorentz_gamma(v: f64) -> Result<f64, string> {
-    if abs(v) >= C_LIGHT { return Err("lorentz_gamma: |v| harus < c"); }
+    if abs(v) >= C_LIGHT { return Err("lorentz_gamma: |v| must be < c"); }
     b := v / C_LIGHT;
     return Ok(1.0 / sqrt(1.0 - b * b));
 }
@@ -1904,9 +1898,9 @@ pub fn arange(a: f64, b: f64, step_: f64) {
     if step_ == 0.0 { return out; }
     x := a;
     if step_ > 0.0 {
-        loop x < b { push(out, x); x += step_; }
+        loop x < b { push(out, x); x = x + step_; }
     } else {
-        loop x > b { push(out, x); x += step_; }
+        loop x > b { push(out, x); x = x + step_; }
     }
     return out;
 }
@@ -1926,13 +1920,13 @@ pub fn geometric_sum(first: f64, ratio: f64, n: i64) -> f64 {
 }
 
 pub fn geometric_sum_inf(first: f64, ratio: f64) -> Result<f64, string> {
-    if abs(ratio) >= 1.0 { return Err("geometric_sum_inf: |r| harus < 1"); }
+    if abs(ratio) >= 1.0 { return Err("geometric_sum_inf: |r| must be < 1"); }
     return Ok(first / (1.0 - ratio));
 }
 
 pub fn harmonic_number(n: i64) -> f64 {
     acc := 0.0;
-    for k in 1..(n + 1) { acc += 1.0 / (k as f64); }
+    for k in 1..(n + 1) { acc = acc + 1.0 / (k as f64); }
     return acc;
 }
 
