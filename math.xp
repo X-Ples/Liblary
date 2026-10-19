@@ -65,7 +65,7 @@ pub fn fmod(a: f64, b: f64) -> f64 { return a - b * floor(a / b); }
 
 pub fn mod_i(a: i64, b: i64) -> i64 {
     r := a % b;
-    if r != 0 && ((r < 0) != (b < 0)) {
+    if r != 0 and ((r < 0) != (b < 0)) {
         r = r + b;
     }
     return r;
@@ -368,10 +368,10 @@ pub fn is_perfect_square(n: i64) -> bool {
 pub fn is_prime(n: i64) -> bool {
     if n < 2 { return false; }
     if n < 4 { return true; }
-    if n % 2 == 0 || n % 3 == 0 { return false; }
+    if n % 2 == 0 or n % 3 == 0 { return false; }
     i := 5;
     loop i * i <= n {
-        if n % i == 0 || n % (i + 2) == 0 { return false; }
+        if n % i == 0 or n % (i + 2) == 0 { return false; }
         i = i + 6;
     }
     return true;
@@ -792,7 +792,7 @@ pub fn median(xs) -> Result<f64, string> {
 pub fn percentile(xs, p: f64) -> Result<f64, string> {
     n := len(xs) as i64;
     if n == 0 { return Err("percentile: empty array"); }
-    if p < 0.0 || p > 100.0 { return Err("percentile: p must be in [0,100]"); }
+    if p < 0.0 or p > 100.0 { return Err("percentile: p must be in [0,100]"); }
     s := sorted(xs);
     rank := (p / 100.0) * ((n - 1) as f64);
     lo := floor(rank) as i64;
@@ -810,7 +810,7 @@ pub fn iqr(xs) -> Result<f64, string> {
 pub fn variance(xs, sample: bool) -> Result<f64, string> {
     n := len(xs) as i64;
     if n == 0 { return Err("variance: empty array"); }
-    if sample && n < 2 { return Err("variance: sample requires >= 2 data points"); }
+    if sample and n < 2 { return Err("variance: sample requires >= 2 data points"); }
     m := mean(xs)?;
     acc := 0.0;
     for i in 0..n { d := xs[i] - m; acc = acc + d * d; }
@@ -848,7 +848,7 @@ pub fn covariance(xs, ys, sample: bool) -> Result<f64, string> {
     n := len(xs) as i64;
     if n != (len(ys) as i64) { return Err("covariance: array lengths differ"); }
     if n == 0 { return Err("covariance: empty array"); }
-    if sample && n < 2 { return Err("covariance: sample requires >= 2 data points"); }
+    if sample and n < 2 { return Err("covariance: sample requires >= 2 data points"); }
     mx := mean(xs)?;
     my := mean(ys)?;
     acc := 0.0;
@@ -862,7 +862,7 @@ pub fn correlation(xs, ys) -> Result<f64, string> {
     c := covariance(xs, ys, false)?;
     sx := std_dev(xs, false)?;
     sy := std_dev(ys, false)?;
-    if sx == 0.0 || sy == 0.0 { return Err("correlation: variance is 0"); }
+    if sx == 0.0 or sy == 0.0 { return Err("correlation: variance is 0"); }
     return Ok(c / (sx * sy));
 }
 
@@ -1480,7 +1480,7 @@ fn adaptive_rec(f, a: f64, b: f64, tol: f64, whole: f64, depth: i64) -> f64 {
     left := (m - a) / 6.0 * (f(a) + 4.0 * f(lm) + f(m));
     right := (b - m) / 6.0 * (f(m) + 4.0 * f(rm) + f(b));
     delta := left + right - whole;
-    if depth >= 40 || abs(delta) <= 15.0 * tol { return left + right + delta / 15.0; }
+    if depth >= 40 or abs(delta) <= 15.0 * tol { return left + right + delta / 15.0; }
     return adaptive_rec(f, a, m, tol / 2.0, left, depth + 1)
          + adaptive_rec(f, m, b, tol / 2.0, right, depth + 1);
 }
@@ -1497,7 +1497,7 @@ pub fn root_bisect(f, a: f64, b: f64, tol: f64) -> Result<f64, string> {
     loop iter < 200 {
         mid := (lo + hi) / 2.0;
         fm := f(mid);
-        if fm == 0.0 || (hi - lo) / 2.0 < tol { return Ok(mid); }
+        if fm == 0.0 or (hi - lo) / 2.0 < tol { return Ok(mid); }
         if flo * fm < 0.0 { hi = mid; } else { lo = mid; flo = fm; }
         iter = iter + 1;
     }
@@ -1640,7 +1640,7 @@ pub fn lagrange(xs, ys, x: f64) -> f64 {
 pub fn interp_linear(xs, ys, x: f64) -> Result<f64, string> {
     n := len(xs) as i64;
     if n < 2 { return Err("interp_linear: requires >= 2 points"); }
-    if x < xs[0] || x > xs[n - 1] { return Err("interp_linear: x out of range"); }
+    if x < xs[0] or x > xs[n - 1] { return Err("interp_linear: x out of range"); }
     for i in 1..n {
         if x <= xs[i] {
             t := (x - xs[i - 1]) / (xs[i] - xs[i - 1]);
@@ -1676,8 +1676,8 @@ pub fn ellipse_perimeter(a: f64, b: f64) -> f64 {
 }
 
 pub fn triangle_area_heron(a: f64, b: f64, c: f64) -> Result<f64, string> {
-    if a <= 0.0 || b <= 0.0 || c <= 0.0 { return Err("heron: sides must be > 0"); }
-    if a + b <= c || a + c <= b || b + c <= a { return Err("heron: triangle inequality violated"); }
+    if a <= 0.0 or b <= 0.0 or c <= 0.0 { return Err("heron: sides must be > 0"); }
+    if a + b <= c or a + c <= b or b + c <= a { return Err("heron: triangle inequality violated"); }
     s := (a + b + c) / 2.0;
     return Ok(sqrt(s * (s - a) * (s - b) * (s - c)));
 }
@@ -1696,7 +1696,7 @@ pub fn manhattan(x1: f64, y1: f64, x2: f64, y2: f64) -> f64 { return abs(x2 - x1
 
 pub fn polygon_area(xs, ys) -> Result<f64, string> {
     n := len(xs) as i64;
-    if n < 3 || n != (len(ys) as i64) { return Err("polygon_area: requires >= 3 points with xs/ys equal length"); }
+    if n < 3 or n != (len(ys) as i64) { return Err("polygon_area: requires >= 3 points with xs/ys equal length"); }
     acc := 0.0;
     for i in 0..n {
         j := (i + 1) % n;
@@ -1834,7 +1834,7 @@ pub fn loan_payment(principal: f64, rate_per_period: f64, n: i64) -> Result<f64,
 }
 
 pub fn cagr(start: f64, end_: f64, years: f64) -> Result<f64, string> {
-    if start <= 0.0 || years <= 0.0 { return Err("cagr: start and years must be > 0"); }
+    if start <= 0.0 or years <= 0.0 { return Err("cagr: start and years must be > 0"); }
     return Ok(pow(end_ / start, 1.0 / years) - 1.0);
 }
 
