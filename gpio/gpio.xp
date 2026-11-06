@@ -1,0 +1,418 @@
+const PIN_LED = 2
+const PIN_BTN = 4
+const PIN_RELAY = 5
+const PIN_CLK = 14
+const PIN_DATA = 15
+
+mmio let GPIO_OUT: u8 @ 0x3FF44004
+mmio let GPIO_OUT_W1TS: u8 @ 0x3FF44008
+mmio let GPIO_OUT_W1TC: u8 @ 0x3FF4400C
+mmio let GPIO_STATUS: u8 @ 0x3FF44018
+mmio let GPIO_ENABLE: u8 @ 0x3FF44020
+mmio let GPIO_ENABLE_W1TS: u8 @ 0x3FF44024
+mmio let GPIO_ENABLE_W1TC: u8 @ 0x3FF44028
+mmio let GPIO_IN: u8 @ 0x3FF4403C
+mmio let GPIO_PIN_CTRL: u8 @ 0x3FF4404C
+
+func bit_mask(bit: int) -> int {
+  guard bit >= 0 && bit <= 7 else {
+    return 0
+  }
+  return 1 << bit
+}
+
+func set_bit(v: int, bit: int) -> int {
+  return v | bit_mask(bit)
+}
+
+func clear_bit(v: int, bit: int) -> int {
+  return v & (255 ^ bit_mask(bit))
+}
+
+func read_bit(v: int, bit: int) -> int {
+  return (v >> bit) & 1
+}
+
+func bin8(v: int) -> str {
+  let out = ""
+  let i = 7
+  while i >= 0 {
+    if read_bit(v, i) == 1 {
+      out = out + "1"
+    } else {
+      out = out + "0"
+    }
+    i = i - 1
+  }
+  return out
+}
+
+func hex2(v: int) -> str {
+  let digits = "0123456789ABCDEF"
+  let hi = (v >> 4) & 15
+  let lo = v & 15
+  return str_char_at(digits, hi) + str_char_at(digits, lo)
+}
+
+func pin_set(bit: int) -> int {
+  GPIO_OUT_W1TS = bit_mask(bit)
+  return GPIO_OUT
+}
+
+func pin_clear(bit: int) -> int {
+  GPIO_OUT_W1TC = bit_mask(bit)
+  return GPIO_OUT
+}
+
+func pin_toggle(bit: int) -> int {
+  let cur = GPIO_OUT
+  if read_bit(cur, bit) == 1 {
+    return pin_clear(bit)
+  }
+  return pin_set(bit)
+}
+
+func pin_read(bit: int) -> int {
+  return read_bit(GPIO_IN, bit)
+}
+
+func dir_enable(bit: int) -> int {
+  GPIO_ENABLE_W1TS = bit_mask(bit)
+  return GPIO_ENABLE
+}
+
+func dir_disable(bit: int) -> int {
+  GPIO_ENABLE_W1TC = bit_mask(bit)
+  return GPIO_ENABLE
+}
+
+func mask_write(mask: int) -> int {
+  GPIO_OUT = mask & 255
+  return GPIO_OUT
+}
+
+func out_snapshot() -> int {
+  return GPIO_OUT
+}
+
+func enable_snapshot() -> int {
+  return GPIO_ENABLE
+}
+
+func in_snapshot() -> int {
+  return GPIO_IN
+}
+
+func irq_status() -> int {
+  return GPIO_STATUS
+}
+
+func clear_status(mask: int) -> int {
+  GPIO_STATUS = GPIO_STATUS & (255 ^ (mask & 255))
+  return GPIO_STATUS
+}
+
+func pin_ctrl_read() -> int {
+  return GPIO_PIN_CTRL
+}
+
+func pin_ctrl_write(v: int) -> int {
+  GPIO_PIN_CTRL = v & 255
+  return GPIO_PIN_CTRL
+}
+
+func wait_cycles(n: int) -> int {
+  for i in 0..n {
+    asm!("nop")
+  }
+  return n
+}
+
+func wait_fences(n: int) -> int {
+  for i in 0..n {
+    asm!("fence")
+  }
+  return n
+}
+
+func prefetch_warm(n: int) -> int {
+  for i in 0..n {
+    asm!("prefetch")
+  }
+  return n
+}
+
+func pulse(bit: int, cycles: int) -> int {
+  pin_set(bit)
+  wait_cycles(cycles)
+  pin_clear(bit)
+  wait_cycles(cycles)
+  return GPIO_OUT
+}
+
+func blink_pattern(bit: int, pattern: [int]) -> int {
+  for phase in pattern {
+    if phase > 0 {
+      pin_set(bit)
+    } else {
+      pin_clear(bit)
+    }
+    wait_cycles(2)
+  }
+  return GPIO_OUT
+}
+
+func simulate_input(mask: int) -> int {
+  GPIO_IN = mask & 255
+  return GPIO_IN
+}
+
+func debounce(samples: [int], stable_need: int) -> int {
+  guard len(samples) > 0 else {
+    return -1
+  }
+  let level = samples[0]
+  let run = 0
+  for s in samples {
+    if s != level {
+      level = s
+      run = 1
+    } else {
+      run = run + 1
+    }
+    if run >= stable_need {
+      return level
+    }
+  }
+  return level
+}
+
+func register_dump() -> str {
+  let out = "GPIO register dump"
+  out = out + "\nOUT      " + hex2(GPIO_OUT) + " " + bin8(GPIO_OUT)
+  out = out + "\nENABLE   " + hex2(GPIO_ENABLE) + " " + bin8(GPIO_ENABLE)
+  out = out + "\nIN       " + hex2(GPIO_IN) + " " + bin8(GPIO_IN)
+  out = out + "\nSTATUS   " + hex2(GPIO_STATUS) + " " + bin8(GPIO_STATUS)
+  out = out + "\nPINCTRL  " + hex2(GPIO_PIN_CTRL) + " " + bin8(GPIO_PIN_CTRL)
+  return out
+}
+
+func pins_report(pins: [int]) -> str {
+  let out = ""
+  for p in pins {
+    let dir = "in"
+    if read_bit(GPIO_ENABLE, p) == 1 {
+      dir = "out"
+    }
+    let val = "0"
+    if read_bit(GPIO_OUT, p) == 1 {
+      val = "1"
+    }
+    out = out + "\npin " + str(p) + " dir " + dir + " val " + val
+  }
+  return out
+}
+
+func setup_output(bit: int) -> int {
+  dir_enable(bit)
+  pin_clear(bit)
+  return read_bit(GPIO_ENABLE, bit)
+}
+
+func shutdown_output(bit: int) -> int {
+  pin_clear(bit)
+  dir_disable(bit)
+  return read_bit(GPIO_ENABLE, bit)
+}
+
+func bit_count(v: int) -> int {
+  let total = 0
+  let x = v & 255
+  let i = 0
+  while i < 8 {
+    if read_bit(x, i) == 1 {
+      total = total + 1
+    }
+    i = i + 1
+  }
+  return total
+}
+
+func bit_scan_high(v: int) -> int {
+  let i = 7
+  while i >= 0 {
+    if read_bit(v, i) == 1 {
+      return i
+    }
+    i = i - 1
+  }
+  return -1
+}
+
+func bit_scan_low(v: int) -> int {
+  let i = 0
+  while i < 8 {
+    if read_bit(v, i) == 1 {
+      return i
+    }
+    i = i + 1
+  }
+  return -1
+}
+
+func rotate_left(v: int, n: int) -> int {
+  let x = v & 255
+  let k = n % 8
+  let i = 0
+  while i < k {
+    let top = read_bit(x, 7)
+    x = ((x << 1) & 255) | top
+    i = i + 1
+  }
+  return x
+}
+
+func pack_bits(bits: [int]) -> int {
+  let out = 0
+  let i = 0
+  while i < len(bits) && i < 8 {
+    if bits[i] != 0 {
+      out = set_bit(out, i)
+    }
+    i = i + 1
+  }
+  return out
+}
+
+func unpack_bits(v: int, n: int) -> [int] {
+  let out = []
+  let i = 0
+  let total = min(n, 8)
+  while i < total {
+    array_push(out, read_bit(v, i))
+    i = i + 1
+  }
+  return out
+}
+
+func shift_out(bit_clk: int, bit_data: int, value: int, bits: int) -> int {
+  let i = bits - 1
+  while i >= 0 {
+    if read_bit(value, i) == 1 {
+      pin_set(bit_data)
+    } else {
+      pin_clear(bit_data)
+    }
+    pin_set(bit_clk)
+    wait_cycles(1)
+    pin_clear(bit_clk)
+    wait_cycles(1)
+    i = i - 1
+  }
+  pin_clear(bit_data)
+  return GPIO_OUT
+}
+
+func shift_in(bit_clk: int, bit_data: int, bits: int) -> int {
+  let acc = 0
+  let i = 0
+  while i < bits {
+    pin_set(bit_clk)
+    wait_cycles(1)
+    pin_clear(bit_clk)
+    if pin_read(bit_data) == 1 {
+      acc = set_bit(acc, i)
+    }
+    wait_cycles(1)
+    i = i + 1
+  }
+  return acc
+}
+
+func countdown_blink(bit: int, n: int) -> int {
+  let i = n
+  while i > 0 {
+    pulse(bit, 2)
+    i = i - 1
+  }
+  return GPIO_OUT
+}
+
+func heartbeat(bit: int, rounds: int) -> int {
+  let pattern = [1, 1, 0, 0, 0, 0]
+  let i = 0
+  while i < rounds {
+    blink_pattern(bit, pattern)
+    i = i + 1
+  }
+  return GPIO_OUT
+}
+
+func wait_until_input(mask: int, max_polls: int) -> int {
+  let i = 0
+  while i < max_polls {
+    asm!("nop")
+    if (GPIO_IN & mask) == mask {
+      return i
+    }
+    i = i + 1
+  }
+  return -1
+}
+
+func edge_detect(prev: [int], samples: [int]) -> [int] {
+  let out = []
+  let n = min(len(prev), len(samples))
+  let i = 0
+  while i < n {
+    let rose = (prev[i] == 0) && (samples[i] != 0)
+    if rose {
+      array_push(out, 1)
+    } else {
+      array_push(out, 0)
+    }
+    i = i + 1
+  }
+  return out
+}
+
+func level_meter(samples: [int]) -> str {
+  let out = ""
+  for s in samples {
+    let level = s & 7
+    out = out + str_repeat("*", level) + "\n"
+  }
+  return out
+}
+
+func self_test(rounds: int) -> int {
+  let bad = 0
+  let i = 0
+  while i < rounds {
+    let pattern = (i * 37 + 11) & 255
+    GPIO_OUT = pattern
+    let back = GPIO_OUT
+    if back != pattern {
+      bad = bad + 1
+    }
+    i = i + 1
+  }
+  GPIO_OUT = 0
+  return bad
+}
+
+func status_bits_report() -> str {
+  let st = GPIO_STATUS
+  let out = "status bits high:"
+  let i = 0
+  while i < 8 {
+    if read_bit(st, i) == 1 {
+      out = out + " " + str(i)
+    }
+    i = i + 1
+  }
+  if st == 0 {
+    out = out + " none"
+  }
+  return out
+}

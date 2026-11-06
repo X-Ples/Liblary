@@ -1,0 +1,362 @@
+const SEC_PER_DAY = 86400
+
+func now() -> f64 {
+  return clock_ms()
+}
+
+func elapsed_since(t: f64) -> f64 {
+  return clock_ms() - t
+}
+
+func sw_start() -> f64 {
+  return clock_ms()
+}
+
+func sw_lap(t: f64) -> f64 {
+  return clock_ms() - t
+}
+
+func sw_reset(t: f64) -> f64 {
+  return clock_ms()
+}
+
+func sw_stop(t: f64) -> f64 {
+  return clock_ms() - t
+}
+
+func pad_num(v: int, width: int) -> str {
+  let s = str(v)
+  while len(s) < width {
+    s = "0" + s
+  }
+  return s
+}
+
+func format_ms(ms: f64) -> str {
+  if ms >= 1000.0 {
+    let secs = int(ms / 1000.0)
+    let frac = int(ms) % 1000
+    return str(secs) + "." + pad_num(frac, 3) + " s"
+  }
+  let whole = int(ms)
+  let frac = int(ms * 100.0) % 100
+  return str(whole) + "." + pad_num(frac, 2) + " ms"
+}
+
+func format_seconds(s: f64) -> str {
+  return format_ms(s * 1000.0)
+}
+
+func ticks() -> f64 {
+  return clock_ms()
+}
+
+func ms_to_seconds(ms: f64) -> f64 {
+  return ms / 1000.0
+}
+
+func seconds_to_ms(s: f64) -> f64 {
+  return s * 1000.0
+}
+
+func benchmark_loop(n: int, f) -> f64 {
+  guard n > 0 else {
+    return 0.0
+  }
+  let t0 = clock_ms()
+  for i in 0..n {
+    f(i)
+  }
+  let dt = clock_ms() - t0
+  return dt / float(n)
+}
+
+func benchmark_once(f) -> f64 {
+  let t0 = clock_ms()
+  f(0)
+  return clock_ms() - t0
+}
+
+func rate_limit_ok(cell: [f64], gap_ms: f64) -> bool {
+  guard len(cell) > 0 else {
+    return false
+  }
+  let t = clock_ms()
+  if t - cell[0] >= gap_ms {
+    cell[0] = t
+    return true
+  }
+  return false
+}
+
+func rate_limit_gap(cell: [f64]) -> f64 {
+  guard len(cell) > 0 else {
+    return 0.0
+  }
+  return clock_ms() - cell[0]
+}
+
+func day_second(counter: int) -> int {
+  let s = counter % SEC_PER_DAY
+  if s < 0 {
+    return s + SEC_PER_DAY
+  }
+  return s
+}
+
+func day_minute(counter: int) -> int {
+  let s = day_second(counter)
+  return (s % 3600) / 60
+}
+
+func day_hour(counter: int) -> int {
+  let s = day_second(counter)
+  return s / 3600
+}
+
+func format_day_time(counter: int) -> str {
+  let h = day_hour(counter)
+  let m = day_minute(counter)
+  let s = day_second(counter) % 60
+  return pad_num(h, 2) + ":" + pad_num(m, 2) + ":" + pad_num(s, 2)
+}
+
+func is_leap_year(y: int) -> bool {
+  if y % 400 == 0 {
+    return true
+  }
+  if y % 100 == 0 {
+    return false
+  }
+  return y % 4 == 0
+}
+
+func days_in_month(y: int, m: int) -> int {
+  guard m >= 1 && m <= 12 else {
+    return 0
+  }
+  if m == 2 {
+    if is_leap_year(y) {
+      return 29
+    }
+    return 28
+  }
+  if m == 4 || m == 6 || m == 9 || m == 11 {
+    return 30
+  }
+  return 31
+}
+
+func day_of_year(y: int, m: int, d: int) -> int {
+  let cum = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
+  guard m >= 1 && m <= 12 else {
+    return 0
+  }
+  let base = cum[m - 1]
+  let extra = 0
+  if m > 2 && is_leap_year(y) {
+    extra = 1
+  }
+  return base + d + extra
+}
+
+func unix_day_to_ymd(day: int) -> [int] {
+  let z = day + 719468
+  let era = z / 146097
+  let doe = z - era * 146097
+  let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365
+  let y = yoe + era * 400
+  let doy = doe - (365 * yoe + yoe / 4 - yoe / 100)
+  let mp = (5 * doy + 2) / 153
+  let d = doy - (153 * mp + 2) / 5 + 1
+  let m = mp + 3
+  if mp >= 10 {
+    m = mp - 9
+  }
+  if m <= 2 {
+    y = y + 1
+  }
+  return [y, m, d]
+}
+
+func ymd_to_unix_day(y: int, m: int, d: int) -> int {
+  let yy = y
+  let mm = m
+  if mm <= 2 {
+    yy = yy - 1
+  }
+  let era = 0
+  if yy >= 0 {
+    era = yy / 400
+  } else {
+    era = (yy - 399) / 400
+  }
+  let yoe = yy - era * 400
+  let mp = mm + 9
+  if mm > 2 {
+    mp = mm - 3
+  }
+  let doy = (153 * mp + 2) / 5 + d - 1
+  let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy
+  return era * 146097 + doe - 719468
+}
+
+func weekday_of_day(day: int) -> int {
+  guard day >= 0 else {
+    return -1
+  }
+  return (day % 7 + 11) % 7
+}
+
+func weekday_name(day: int) -> str {
+  let names = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+  let idx = weekday_of_day(day)
+  guard idx >= 0 && idx < 7 else {
+    return "Unknown"
+  }
+  return names[idx]
+}
+
+func month_name(m: int) -> str {
+  let names = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+  guard m >= 1 && m <= 12 else {
+    return "Unknown"
+  }
+  return names[m - 1]
+}
+
+func fmt_unix_day(day: int) -> str {
+  let ymd = unix_day_to_ymd(day)
+  return pad_num(ymd[0], 4) + "-" + pad_num(ymd[1], 2) + "-" + pad_num(ymd[2], 2)
+}
+
+func format_epoch_seconds(counter: int) -> str {
+  let days = counter / SEC_PER_DAY
+  let time_part = format_day_time(counter)
+  return fmt_unix_day(days) + " " + time_part
+}
+
+func format_ns(ns: f64) -> str {
+  if ns >= 1000.0 {
+    let whole = int(ns / 1000.0)
+    let frac = int(ns / 10.0) % 100
+    return str(whole) + "." + pad_num(frac, 2) + " us"
+  }
+  let whole = int(ns)
+  let frac = int(ns * 100.0) % 100
+  return str(whole) + "." + pad_num(frac, 2) + " ns"
+}
+
+func bench_report(name: str, n: int, f) -> str {
+  let per = benchmark_loop(n, f)
+  return name + " " + format_ms(per) + " per iter over " + str(n) + " runs"
+}
+
+func add_days(day: int, n: int) -> int {
+  return day + n
+}
+
+func days_in_year(y: int) -> int {
+  if is_leap_year(y) {
+    return 366
+  }
+  return 365
+}
+
+func is_valid_ymd(y: int, m: int, d: int) -> bool {
+  guard y >= 1970 && y <= 9999 else {
+    return false
+  }
+  guard m >= 1 && m <= 12 else {
+    return false
+  }
+  guard d >= 1 && d <= days_in_month(y, m) else {
+    return false
+  }
+  return true
+}
+
+func epoch_seconds(y: int, m: int, d: int, hh: int, mm: int, ss: int) -> int {
+  guard is_valid_ymd(y, m, d) else {
+    return -1
+  }
+  guard hh >= 0 && hh < 24 && mm >= 0 && mm < 60 && ss >= 0 && ss < 60 else {
+    return -1
+  }
+  let base = ymd_to_unix_day(y, m, d) * SEC_PER_DAY
+  return base + hh * 3600 + mm * 60 + ss
+}
+
+func hhmmss_to_second(h: int, m: int, s: int) -> int {
+  guard h >= 0 && h < 24 && m >= 0 && m < 60 && s >= 0 && s < 60 else {
+    return -1
+  }
+  return h * 3600 + m * 60 + s
+}
+
+func second_to_hhmmss(s: int) {
+  let sec = day_second(s)
+  return [sec / 3600, (sec % 3600) / 60, sec % 60]
+}
+
+func quarter_of(m: int) -> int {
+  guard m >= 1 && m <= 12 else {
+    return 0
+  }
+  return (m - 1) / 3 + 1
+}
+
+func is_weekend(day: int) -> bool {
+  let w = weekday_of_day(day)
+  return w == 0 || w == 6
+}
+
+func next_weekday(day: int) -> int {
+  let d = day + 1
+  while is_weekend(d) {
+    d = d + 1
+  }
+  return d
+}
+
+func month_length_table(y: int) -> [int] {
+  let out = []
+  for m in 0..12 {
+    array_push(out, days_in_month(y, m + 1))
+  }
+  return out
+}
+
+func duration_between(a: int, b: int) -> str {
+  guard b >= a else {
+    return "negative span"
+  }
+  let diff = b - a
+  let h = diff / 3600
+  let m = (diff % 3600) / 60
+  let s = diff % 60
+  return pad_num(h, 2) + ":" + pad_num(m, 2) + ":" + pad_num(s, 2)
+}
+
+func uptime_format(ms: f64) -> str {
+  let total = int(ms / 1000.0)
+  let days = total / SEC_PER_DAY
+  let rest = total % SEC_PER_DAY
+  let h = rest / 3600
+  let m = (rest % 3600) / 60
+  let s = rest % 60
+  return str(days) + "d " + pad_num(h, 2) + ":" + pad_num(m, 2) + ":" + pad_num(s, 2)
+}
+
+func countdown_plan(start_s: int, steps: int) -> [int] {
+  let out = []
+  guard steps > 0 else {
+    return out
+  }
+  let i = 0
+  while i < steps {
+    array_push(out, start_s - i)
+    i = i + 1
+  }
+  return out
+}

@@ -1,0 +1,329 @@
+func crossz(ax: f64, ay: f64, bx: f64, by: f64) -> f64 {
+  return ax * by - ay * bx
+}
+
+func pdist(px: f64, py: f64, qx: f64, qy: f64) -> f64 {
+  let dx = qx - px
+  let dy = qy - py
+  return sqrt(dx * dx + dy * dy)
+}
+
+func seg_len(a: vec2, b: vec2) -> f64 {
+  return pdist(a.x, a.y, b.x, b.y)
+}
+
+func tri_area(ax: f64, ay: f64, bx: f64, by: f64, cx: f64, cy: f64) -> f64 {
+  return abs(crossz(bx - ax, by - ay, cx - ax, cy - ay)) / 2.0
+}
+
+func pt_in_rect(px: f64, py: f64, rx: f64, ry: f64, rw: f64, rh: f64) -> bool {
+  guard rw > 0.0 && rh > 0.0 else {
+    return false
+  }
+  return px >= rx && px <= rx + rw && py >= ry && py <= ry + rh
+}
+
+func rect_area(x: f64, y: f64, w: f64, h: f64) -> f64 {
+  return abs(w * h)
+}
+
+func rect_intersect(ax: f64, ay: f64, aw: f64, ah: f64, bx: f64, by: f64, bw: f64, bh: f64) -> bool {
+  return ax < bx + bw && bx < ax + aw && ay < by + bh && by < ay + ah
+}
+
+func rect_union_area(ax: f64, ay: f64, aw: f64, ah: f64, bx: f64, by: f64, bw: f64, bh: f64) -> f64 {
+  let ix = max(ax, bx)
+  let iy = max(ay, by)
+  let ix2 = min(ax + aw, bx + bw)
+  let iy2 = min(ay + ah, by + bh)
+  let iw = ix2 - ix
+  let ih = iy2 - iy
+  let inter = 0.0
+  if iw > 0.0 && ih > 0.0 {
+    inter = iw * ih
+  }
+  return rect_area(ax, ay, aw, ah) + rect_area(bx, by, bw, bh) - inter
+}
+
+func circle_rect_collision(cx: f64, cy: f64, r: f64, rx: f64, ry: f64, rw: f64, rh: f64) -> bool {
+  let qx = min(max(cx, rx), rx + rw)
+  let qy = min(max(cy, ry), ry + rh)
+  let dx = cx - qx
+  let dy = cy - qy
+  return dx * dx + dy * dy <= r * r
+}
+
+func seg_intersect(ax: f64, ay: f64, bx: f64, by: f64, cx: f64, cy: f64, dx: f64, dy: f64) -> bool {
+  let d1 = crossz(dx - cx, dy - cy, ax - cx, ay - cy)
+  let d2 = crossz(dx - cx, dy - cy, bx - cx, by - cy)
+  let d3 = crossz(bx - ax, by - ay, cx - ax, cy - ay)
+  let d4 = crossz(bx - ax, by - ay, dx - ax, dy - ay)
+  let ab = (d1 > 0.0 && d2 < 0.0) || (d1 < 0.0 && d2 > 0.0)
+  let cd = (d3 > 0.0 && d4 < 0.0) || (d3 < 0.0 && d4 > 0.0)
+  return ab && cd
+}
+
+func seg_hit_point(ax: f64, ay: f64, bx: f64, by: f64, cx: f64, cy: f64, dx: f64, dy: f64) {
+  guard seg_intersect(ax, ay, bx, by, cx, cy, dx, dy) else {
+    return []
+  }
+  let rfx = bx - ax
+  let rfy = by - ay
+  let sfx = dx - cx
+  let sfy = dy - cy
+  let denom = crossz(rfx, rfy, sfx, sfy)
+  guard denom != 0.0 else {
+    return []
+  }
+  let t = crossz(cx - ax, cy - ay, sfx, sfy) / denom
+  return [ax + t * rfx, ay + t * rfy]
+}
+
+func point_seg_dist(px: f64, py: f64, ax: f64, ay: f64, bx: f64, by: f64) -> f64 {
+  let abx = bx - ax
+  let aby = by - ay
+  let len2 = abx * abx + aby * aby
+  if len2 == 0.0 {
+    return pdist(px, py, ax, ay)
+  }
+  let t = ((px - ax) * abx + (py - ay) * aby) / len2
+  let tc = min(max(t, 0.0), 1.0)
+  let qx = ax + tc * abx
+  let qy = ay + tc * aby
+  return pdist(px, py, qx, qy)
+}
+
+func closest_point_on_seg(px: f64, py: f64, ax: f64, ay: f64, bx: f64, by: f64) {
+  let abx = bx - ax
+  let aby = by - ay
+  let len2 = abx * abx + aby * aby
+  if len2 == 0.0 {
+    return [ax, ay]
+  }
+  let t = ((px - ax) * abx + (py - ay) * aby) / len2
+  let tc = min(max(t, 0.0), 1.0)
+  return [ax + tc * abx, ay + tc * aby]
+}
+
+func polygon_area(pts: [vec2]) -> f64 {
+  let n = len(pts)
+  guard n >= 3 else {
+    return 0.0
+  }
+  let total = 0.0
+  let i = 0
+  while i < n {
+    let j = (i + 1) % n
+    let a = pts[i]
+    let b = pts[j]
+    total = total + (a.x * b.y - b.x * a.y)
+    i = i + 1
+  }
+  return abs(total) / 2.0
+}
+
+func polygon_perimeter(pts: [vec2]) -> f64 {
+  let n = len(pts)
+  guard n >= 2 else {
+    return 0.0
+  }
+  let total = 0.0
+  let i = 0
+  while i < n {
+    let j = (i + 1) % n
+    total = total + seg_len(pts[i], pts[j])
+    i = i + 1
+  }
+  return total
+}
+
+func polygon_centroid(pts: [vec2]) -> vec2 {
+  let n = len(pts)
+  guard n >= 3 else {
+    return vec2(0.0, 0.0)
+  }
+  let sa = 0.0
+  let cx = 0.0
+  let cy = 0.0
+  let i = 0
+  while i < n {
+    let j = (i + 1) % n
+    let a = pts[i]
+    let b = pts[j]
+    let cross = a.x * b.y - b.x * a.y
+    sa = sa + cross
+    cx = cx + (a.x + b.x) * cross
+    cy = cy + (a.y + b.y) * cross
+    i = i + 1
+  }
+  guard sa != 0.0 else {
+    return vec2(0.0, 0.0)
+  }
+  return vec2(cx / (3.0 * sa), cy / (3.0 * sa))
+}
+
+func convex_check(pts: [vec2]) -> bool {
+  let n = len(pts)
+  guard n >= 3 else {
+    return false
+  }
+  let sign = 0
+  let i = 0
+  while i < n {
+    let a = pts[i]
+    let b = pts[(i + 1) % n]
+    let c = pts[(i + 2) % n]
+    let cz = crossz(b.x - a.x, b.y - a.y, c.x - b.x, c.y - b.y)
+    if cz > 0.000001 {
+      if sign < 0 {
+        return false
+      }
+      sign = 1
+    } else if cz < -0.000001 {
+      if sign > 0 {
+        return false
+      }
+      sign = -1
+    }
+    i = i + 1
+  }
+  return true
+}
+
+func point_in_tri(px: f64, py: f64, ax: f64, ay: f64, bx: f64, by: f64, cx: f64, cy: f64) -> bool {
+  let d1 = crossz(px - ax, py - ay, bx - ax, by - ay)
+  let d2 = crossz(px - bx, py - by, cx - bx, cy - by)
+  let d3 = crossz(px - cx, py - cy, ax - cx, ay - cy)
+  let has_neg = d1 < 0.0 || d2 < 0.0 || d3 < 0.0
+  let has_pos = d1 > 0.0 || d2 > 0.0 || d3 > 0.0
+  return !(has_neg && has_pos)
+}
+
+func ray_circle_t(ox: f64, oy: f64, dx: f64, dy: f64, cx: f64, cy: f64, r: f64) -> f64 {
+  let dl = sqrt(dx * dx + dy * dy)
+  guard dl > 0.0 else {
+    return -1.0
+  }
+  let ndx = dx / dl
+  let ndy = dy / dl
+  let mx = ox - cx
+  let my = oy - cy
+  let b = mx * ndx + my * ndy
+  let c = mx * mx + my * my - r * r
+  if c > 0.0 && b > 0.0 {
+    return -1.0
+  }
+  let disc = b * b - c
+  if disc < 0.0 {
+    return -1.0
+  }
+  let t = -b - sqrt(disc)
+  if t < 0.0 {
+    return 0.0
+  }
+  return t
+}
+
+func ray_circle(ox: f64, oy: f64, dx: f64, dy: f64, cx: f64, cy: f64, r: f64) -> bool {
+  return ray_circle_t(ox, oy, dx, dy, cx, cy, r) >= 0.0
+}
+
+func aabb_of_points(pts: [vec2]) {
+  let n = len(pts)
+  guard n > 0 else {
+    return []
+  }
+  let minx = pts[0].x
+  let miny = pts[0].y
+  let maxx = pts[0].x
+  let maxy = pts[0].y
+  let i = 1
+  while i < n {
+    let p = pts[i]
+    if p.x < minx {
+      minx = p.x
+    }
+    if p.y < miny {
+      miny = p.y
+    }
+    if p.x > maxx {
+      maxx = p.x
+    }
+    if p.y > maxy {
+      maxy = p.y
+    }
+    i = i + 1
+  }
+  return [minx, miny, maxx, maxy]
+}
+
+func aabb_overlaps(ax: f64, ay: f64, aw: f64, ah: f64, bx: f64, by: f64, bw: f64, bh: f64) -> bool {
+  return rect_intersect(ax, ay, aw, ah, bx, by, bw, bh)
+}
+
+func vdot(a: vec2, b: vec2) -> f64 {
+  return a.x * b.x + a.y * b.y
+}
+
+func vlen(a: vec2) -> f64 {
+  return sqrt(vdot(a, a))
+}
+
+func vnorm(a: vec2) -> vec2 {
+  let n = vlen(a)
+  guard n > 0.0 else {
+    return vec2(0.0, 0.0)
+  }
+  return vec2(a.x / n, a.y / n)
+}
+
+func vperp(a: vec2) -> vec2 {
+  return vec2(-a.y, a.x)
+}
+
+func sd_circle(px: f64, py: f64, cx: f64, cy: f64, r: f64) -> f64 {
+  return pdist(px, py, cx, cy) - r
+}
+
+func sd_box(px: f64, py: f64, bx: f64, by: f64, w: f64, h: f64) -> f64 {
+  let hx = w / 2.0
+  let hy = h / 2.0
+  let qx = abs(px - (bx + hx)) - hx
+  let qy = abs(py - (by + hy)) - hy
+  let ox = max(qx, 0.0)
+  let oy = max(qy, 0.0)
+  return sqrt(ox * ox + oy * oy) + min(max(qx, qy), 0.0)
+}
+
+func sd_segment(px: f64, py: f64, ax: f64, ay: f64, bx: f64, by: f64) -> f64 {
+  return point_seg_dist(px, py, ax, ay, bx, by)
+}
+
+func sdf_union(a: f64, b: f64) -> f64 {
+  return min(a, b)
+}
+
+func sdf_intersect(a: f64, b: f64) -> f64 {
+  return max(a, b)
+}
+
+func sdf_subtract(a: f64, b: f64) -> f64 {
+  return max(a, -b)
+}
+
+func rect_center(x: f64, y: f64, w: f64, h: f64) -> vec2 {
+  return vec2(x + w / 2.0, y + h / 2.0)
+}
+
+func rect_from_center(cx: f64, cy: f64, w: f64, h: f64) {
+  return [cx - w / 2.0, cy - h / 2.0, w, h]
+}
+
+func rect_contains_rect(ax: f64, ay: f64, aw: f64, ah: f64, bx: f64, by: f64, bw: f64, bh: f64) -> bool {
+  return bx >= ax && by >= ay && bx + bw <= ax + aw && by + bh <= ay + ah
+}
+
+func circle_circle_collision(cx: f64, cy: f64, r1: f64, dx: f64, dy: f64, r2: f64) -> bool {
+  let d = pdist(cx, cy, dx, dy)
+  return d <= r1 + r2
+}

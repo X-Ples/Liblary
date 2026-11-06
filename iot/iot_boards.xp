@@ -1,0 +1,407 @@
+const BOARD_ESP32_DEV = 1
+const BOARD_GENERIC = 0
+
+const PIN_LED_BUILTIN = 2
+const PIN_BTN_BUILTIN = 4
+const PIN_SDA = 21
+const PIN_SCL = 22
+
+let active_board = BOARD_GENERIC
+
+func board_select(which: int) -> int {
+  active_board = which
+  return active_board
+}
+
+func board_name() -> str {
+  if active_board == BOARD_ESP32_DEV {
+    return "esp32-dev"
+  }
+  return "generic"
+}
+
+func led_setup(pin: int) -> int {
+  pin_init(pin, PIN_OUT, PULL_NONE)
+  pin_clear(pin)
+  return read_bit(GPIO_ENABLE, pin)
+}
+
+func led_on(pin: int) -> int {
+  digital_high(pin)
+  return 1
+}
+
+func led_off(pin: int) -> int {
+  digital_low(pin)
+  return 0
+}
+
+func board_blink(pin: int, times: int) -> int {
+  let i = 0
+  while i < times {
+    led_on(pin)
+    delay_ms(2)
+    led_off(pin)
+    delay_ms(2)
+    i = i + 1
+  }
+  return times
+}
+
+func board_report() -> str {
+  let out = "board " + board_name()
+  out = out + "\nled pin " + str(PIN_LED_BUILTIN)
+  out = out + "\nbtn pin " + str(PIN_BTN_BUILTIN)
+  out = out + "\ni2c pins " + str(PIN_SDA) + "/" + str(PIN_SCL)
+  return out
+}
+
+const BOARD_ESP32S3 = 2
+const BOARD_ESP32C3 = 3
+const BOARD_RPI_PICO = 4
+const BOARD_STM32 = 5
+
+const PIN_TX = 43
+const PIN_RX = 44
+const PIN_MOSI = 11
+const PIN_MISO = 13
+const PIN_SCK = 12
+const PIN_A0 = 36
+const PIN_A1 = 37
+const PIN_A2 = 38
+const PIN_A3 = 39
+const PIN_DAC1 = 25
+const PIN_DAC2 = 26
+const PWM_CH_A = 0
+const PWM_CH_B = 1
+const PWM_CH_C = 2
+const PWM_CH_D = 3
+const UART_BAUD_9600 = 9600
+const UART_BAUD_115200 = 115200
+const I2C_SPEED_STD = 100000
+const I2C_SPEED_FAST = 400000
+const SPI_CLOCK_1M = 1000000
+const SPI_CLOCK_8M = 8000000
+
+let board_led_state = 0
+let board_tick_count = 0
+let board_last_cmd = 0
+
+func board_init(which: int) -> int {
+  active_board = board_select(which)
+  iot.pin_init(PIN_LED_BUILTIN, PIN_OUT, PULL_NONE)
+  board_led_state = 0
+  board_tick_count = 0
+  board_last_cmd = 0
+  return active_board
+}
+
+func board_led_on() -> int {
+  iot.digital_high(PIN_LED_BUILTIN)
+  board_led_state = 1
+  return board_led_state
+}
+
+func board_led_off() -> int {
+  iot.digital_low(PIN_LED_BUILTIN)
+  board_led_state = 0
+  return board_led_state
+}
+
+func board_led_toggle() -> int {
+  if board_led_state == 1 {
+    board_led_off()
+    return 0
+  }
+  board_led_on()
+  return 1
+}
+
+func board_blink(times: int, step: int) -> int {
+  let done = 0
+  let k = 0
+  while k < times {
+    board_led_toggle()
+    iot.delay_ms(step)
+    board_led_toggle()
+    iot.delay_ms(step)
+    done += 1
+    k += 1
+  }
+  return done
+}
+
+func board_tick() -> int {
+  board_tick_count += 1
+  return board_tick_count
+}
+
+func board_uptime() -> int {
+  return iot.now_ms()
+}
+
+func board_poll_button() -> int {
+  iot.pin_init(PIN_BTN_BUILTIN, PIN_IN, PULL_UP)
+  if iot.pin_read(PIN_BTN_BUILTIN) == 0 {
+    return 1
+  }
+  return 0
+}
+
+func board_analog(slot: int, samples: int) -> int {
+  return iot.adc_read_avg(samples)
+}
+
+func board_pwm_level(ch: int, duty: int) -> int {
+  iot.pwm_init(ch)
+  iot.pwm_set_duty(ch, duty)
+  return iot.pwm_get_duty(ch)
+}
+
+func board_pwm_sweep(ch: int, rounds: int) -> int {
+  let applied = 0
+  let k = 0
+  while k < rounds {
+    iot.pwm_fade(ch, k * 8, 2)
+    applied += 1
+    k += 1
+  }
+  return applied
+}
+
+func board_i2c_ping(addr: int) -> int {
+  iot.i2c_start()
+  let ack = iot.i2c_write_byte(addr)
+  iot.i2c_stop()
+  return ack
+}
+
+func board_spi_exchange(value: int) -> int {
+  return iot.spi_transfer(value)
+}
+
+func board_uart_send(payload: int) -> int {
+  let frame = iot.uart_frame([payload])
+  return iot.uart_write(frame)
+}
+
+func board_uart_drain() -> int {
+  let drained = 0
+  let guard = 0
+  while iot.uart_busy() == 0 && guard < 16 {
+    let chunk = iot.uart_read()
+    if len(chunk) == 0 {
+      guard += 1
+    } else {
+      drained += len(chunk)
+    }
+  }
+  return drained
+}
+
+func board_store_note(slot: int, value: int) -> int {
+  return iot.nvs_set(slot, value)
+}
+
+func board_recall_note(slot: int) -> int {
+  return iot.nvs_get(slot)
+}
+
+func board_note_count() -> int {
+  return iot.nvs_count()
+}
+
+func board_net_push(bytes: int) -> int {
+  if iot.is_connected() == 0 {
+    iot.net_connect()
+  }
+  return iot.net_send(bytes)
+}
+
+func board_last_command() -> int {
+  return board_last_cmd
+}
+
+func board_run_selftest() -> int {
+  board_init(BOARD_ESP32_DEV)
+  let bad = iot.self_test()
+  if bad != 0 {
+    return bad
+  }
+  let blink = board_blink(2, 1)
+  if blink != 2 {
+    return 91
+  }
+  let pwm = board_pwm_level(PWM_CH_A, 128)
+  if pwm < 0 {
+    return 92
+  }
+  let ping = board_i2c_ping(32)
+  if ping < 0 {
+    return 93
+  }
+  let xchg = board_spi_exchange(85)
+  if xchg < 0 {
+    return 94
+  }
+  board_uart_send(120)
+  board_store_note(3, 4451)
+  if board_recall_note(3) != 4451 {
+    return 95
+  }
+  let pushed = board_net_push(96)
+  if pushed < 0 {
+    return 96
+  }
+  return 0
+}
+
+func board_report() -> str {
+  let name = board_name()
+  let led = str(board_led_state)
+  let ticks = str(board_tick_count)
+  return "board " + name + " led " + led + " ticks " + ticks
+}
+
+func board_dual_pwm(cha: int, chb: int, duty_a: int, duty_b: int) -> int {
+  let a = board_pwm_level(cha, duty_a)
+  let b = board_pwm_level(chb, duty_b)
+  return a + b
+}
+
+func board_motor_pair(pin_a: int, pin_b: int, speed: int) -> int {
+  iot.pin_init(pin_a, PIN_OUT, PULL_NONE)
+  iot.pin_init(pin_b, PIN_OUT, PULL_NONE)
+  if speed >= 0 {
+    iot.digital_high(pin_a)
+    iot.digital_low(pin_b)
+  } else {
+    iot.digital_low(pin_a)
+    iot.digital_high(pin_b)
+  }
+  iot.pwm_init(PWM_CH_B)
+  iot.pwm_set_duty(PWM_CH_B, speed)
+  return speed
+}
+
+func board_motor_stop(pin_a: int, pin_b: int) -> int {
+  iot.digital_low(pin_a)
+  iot.digital_low(pin_b)
+  iot.pwm_set_duty(PWM_CH_B, 0)
+  return 0
+}
+
+func board_encoder_poll(pin: int, samples: int) -> int {
+  iot.pin_init(pin, PIN_IN, PULL_NONE)
+  let edges = 0
+  let prev = iot.pin_read(pin)
+  let k = 0
+  while k < samples {
+    let cur = iot.pin_read(pin)
+    if cur != prev {
+      edges += 1
+      prev = cur
+    }
+    k += 1
+  }
+  return edges
+}
+
+func board_ws2812_latch(pin: int, frames: int) -> int {
+  iot.pin_init(pin, PIN_OUT, PULL_NONE)
+  let latched = 0
+  let k = 0
+  while k < frames {
+    iot.delay_us(50)
+    iot.digital_high(pin)
+    iot.delay_us(1)
+    iot.digital_low(pin)
+    latched += 1
+    k += 1
+  }
+  return latched
+}
+
+func board_button_wait(pin: int, timeout_ms: int) -> int {
+  iot.pin_init(pin, PIN_IN, PULL_UP)
+  let waited = 0
+  while waited < timeout_ms {
+    if iot.pin_read(pin) == 0 {
+      return waited
+    }
+    iot.delay_ms(1)
+    waited += 1
+  }
+  return -1
+}
+
+func board_deep_sleep(ms: int) -> int {
+  iot.digital_low(PIN_LED_BUILTIN)
+  iot.delay_ms(ms)
+  return iot.now_ms()
+}
+
+func board_cpu_serial(slot: int) -> int {
+  let a = iot.nvs_get(slot)
+  let b = iot.nvs_get(slot + 1)
+  return a * 65536 + b
+}
+
+func board_write_serial(slot: int, serial: int) -> int {
+  let hi = serial / 65536
+  let lo = serial - hi * 65536
+  iot.nvs_set(slot, hi)
+  iot.nvs_set(slot + 1, lo)
+  return serial
+}
+
+func board_health_check() -> int {
+  let bad = iot.self_test()
+  if bad != 0 {
+    return bad
+  }
+  if board_note_count() < 2 {
+    return 81
+  }
+  let ticks = board_tick()
+  if ticks <= 0 {
+    return 82
+  }
+  return 0
+}
+
+func board_factory_reset() -> int {
+  let k = 0
+  while k < 8 {
+    iot.nvs_set(k, 0)
+    k += 1
+  }
+  board_init(BOARD_GENERIC)
+  return 0
+}
+
+func board_calibration_write(slot: int, gain: int, offset: int) -> int {
+  iot.nvs_set(slot, gain)
+  iot.nvs_set(slot + 1, offset)
+  return gain * 1000 + offset
+}
+
+func board_calibration_read(slot: int) -> int {
+  let gain = iot.nvs_get(slot)
+  let offset = iot.nvs_get(slot + 1)
+  if gain <= 0 {
+    return 0
+  }
+  return gain * 1000 + offset
+}
+
+func board_log_append(slot: int, event: int) -> int {
+  let prev = iot.nvs_get(slot)
+  let next = prev * 10 + event - event + prev + event
+  iot.nvs_set(slot, next - prev)
+  return next
+}
+
+func board_banner() -> str {
+  return board_name() + " ready led=" + str(board_led_state) + " cmds=" + str(board_last_cmd)
+}

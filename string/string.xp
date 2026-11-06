@@ -1,0 +1,390 @@
+func find_sub(s: str, sub: str) -> int {
+  let n = len(sub)
+  guard n > 0 && n <= len(s) else {
+    return -1
+  }
+  let limit = len(s) - n
+  let i = 0
+  while i <= limit {
+    if slice(s, i, n) == sub {
+      return i
+    }
+    i = i + 1
+  }
+  return -1
+}
+
+func upper(s: str) -> str {
+  return str_upper(s)
+}
+
+func lower(s: str) -> str {
+  return str_lower(s)
+}
+
+func trim(s: str) -> str {
+  return trim_right(trim_left(s))
+}
+
+func trim_left(s: str) -> str {
+  let i = 0
+  while i < len(s) {
+    let code = str_code_at(s, i)
+    if code != 32 && code != 9 {
+      break
+    }
+    i = i + 1
+  }
+  return slice(s, i, len(s) - i)
+}
+
+func trim_right(s: str) -> str {
+  let i = len(s) - 1
+  while i >= 0 {
+    let code = str_code_at(s, i)
+    if code != 32 && code != 9 {
+      break
+    }
+    i = i - 1
+  }
+  return slice(s, 0, i + 1)
+}
+
+func contains(s: str, sub: str) -> bool {
+  return str_contains(s, sub)
+}
+
+func starts(s: str, p: str) -> bool {
+  return str_starts(s, p)
+}
+
+func ends(s: str, suf: str) -> bool {
+  return str_ends(s, suf)
+}
+
+func replace(s: str, a: str, b: str) -> str {
+  return str_replace(s, a, b)
+}
+
+func repeat(s: str, n: int) -> str {
+  guard n > 0 else {
+    return ""
+  }
+  return str_repeat(s, n)
+}
+
+func length(s: str) -> int {
+  return len(s)
+}
+
+func is_empty(s: str) -> bool {
+  return len(s) == 0
+}
+
+func char_at(s: str, i: int) -> str {
+  guard i >= 0 && i < len(s) else {
+    return ""
+  }
+  return str_char_at(s, i)
+}
+
+func code_at(s: str, i: int) -> int {
+  guard i >= 0 && i < len(s) else {
+    return -1
+  }
+  return str_code_at(s, i)
+}
+
+func slice(s: str, start: int, n: int) -> str {
+  guard start >= 0 && n >= 0 && start + n <= len(s) else {
+    return ""
+  }
+  let out = ""
+  let i = 0
+  while i < n {
+    out = out + str_char_at(s, start + i)
+    i = i + 1
+  }
+  return out
+}
+
+func reverse(s: str) -> str {
+  let out = ""
+  let i = len(s) - 1
+  while i >= 0 {
+    out = out + str_char_at(s, i)
+    i = i - 1
+  }
+  return out
+}
+
+func eq_ignore_case(a: str, b: str) -> bool {
+  return str_lower(a) == str_lower(b)
+}
+
+func pad_both(s: str, width: int, ch: str) -> str {
+  guard width > len(s) && len(ch) > 0 else {
+    return s
+  }
+  let pad = width - len(s)
+  let left = pad / 2
+  let right = pad - left
+  return str_repeat(ch, left) + s + str_repeat(ch, right)
+}
+
+func chop(s: str) -> str {
+  guard len(s) > 0 else {
+    return s
+  }
+  return slice(s, 0, len(s) - 1)
+}
+
+func words(s: str) -> [str] {
+  let parts = str_split(s, " ")
+  let out = []
+  for p in parts {
+    if len(p) > 0 {
+      array_push(out, p)
+    }
+  }
+  return out
+}
+
+func lines(s: str) -> [str] {
+  return str_split(s, "\n")
+}
+
+func split_first(s: str, sep: str) {
+  let idx = find_sub(s, sep)
+  if idx < 0 {
+    return [s, ""]
+  }
+  return [slice(s, 0, idx), slice(s, idx + len(sep), len(s) - idx - len(sep))]
+}
+
+func split_last(s: str, sep: str) {
+  let n = len(sep)
+  guard n > 0 else {
+    return [s, ""]
+  }
+  let idx = -1
+  let i = len(s) - n
+  while i >= 0 {
+    if slice(s, i, n) == sep {
+      idx = i
+      i = -1
+    } else {
+      i = i - 1
+    }
+  }
+  if idx < 0 {
+    return [s, ""]
+  }
+  return [slice(s, 0, idx), slice(s, idx + n, len(s) - idx - n)]
+}
+
+func join_args(parts: [str], sep: str) -> str {
+  return str_join(parts, sep)
+}
+
+func concat3(a: str, b: str, c: str) -> str {
+  return a + b + c
+}
+
+func count_occurrences(s: str, sub: str) -> int {
+  let n = len(sub)
+  guard n > 0 else {
+    return 0
+  }
+  let total = 0
+  let pos = 0
+  while pos <= len(s) - n {
+    let idx = find_sub(slice(s, pos, len(s) - pos), sub)
+    if idx < 0 {
+      break
+    }
+    total = total + 1
+    pos = pos + idx + n
+  }
+  return total
+}
+
+func has_prefix_ci(a: str, b: str) -> bool {
+  return str_starts(str_lower(a), str_lower(b))
+}
+
+func ascii_title(s: str) -> str {
+  let out = ""
+  let prev_space = true
+  let i = 0
+  while i < len(s) {
+    let code = str_code_at(s, i)
+    let ch = str_char_at(s, i)
+    let lower = code >= 97 && code <= 122
+    let upper = code >= 65 && code <= 90
+    let alpha = lower || upper
+    if alpha && prev_space {
+      out = out + str_upper(ch)
+    } else if alpha {
+      out = out + str_lower(ch)
+    } else {
+      out = out + ch
+    }
+    if code == 32 {
+      prev_space = true
+    } else {
+      prev_space = false
+    }
+    i = i + 1
+  }
+  return out
+}
+
+func normalize_spaces(s: str) -> str {
+  let out = ""
+  let pending = false
+  let i = 0
+  while i < len(s) {
+    let code = str_code_at(s, i)
+    if code == 32 || code == 9 {
+      pending = true
+    } else {
+      if pending && len(out) > 0 {
+        out = out + " "
+      }
+      out = out + str_char_at(s, i)
+      pending = false
+    }
+    i = i + 1
+  }
+  return out
+}
+
+func parse_digits(s: str) -> int {
+  guard len(s) > 0 else {
+    return -1
+  }
+  let start = 0
+  let sign = 1
+  if str_char_at(s, 0) == "-" {
+    start = 1
+    sign = -1
+  }
+  guard start < len(s) else {
+    return -1
+  }
+  let acc = 0
+  let i = start
+  while i < len(s) {
+    let code = str_code_at(s, i)
+    guard code >= 48 && code <= 57 else {
+      return -1
+    }
+    acc = acc * 10 + (code - 48)
+    i = i + 1
+  }
+  return acc * sign
+}
+
+func blank(n: int) -> str {
+  guard n > 0 else {
+    return ""
+  }
+  return str_repeat(" ", n)
+}
+
+func dash_line(n: int) -> str {
+  guard n > 0 else {
+    return ""
+  }
+  return str_repeat("-", n)
+}
+
+func quote(s: str) -> str {
+  return "\"" + s + "\""
+}
+
+func surround(s: str, with: str) -> str {
+  return with + s + with
+}
+
+func truncate(s: str, n: int) -> str {
+  guard n < len(s) else {
+    return s
+  }
+  return slice(s, 0, n)
+}
+
+func index_of_char(s: str, ch: str) -> int {
+  let i = 0
+  while i < len(s) {
+    if str_char_at(s, i) == ch {
+      return i
+    }
+    i = i + 1
+  }
+  return -1
+}
+
+func last_index_of_char(s: str, ch: str) -> int {
+  let i = len(s) - 1
+  while i >= 0 {
+    if str_char_at(s, i) == ch {
+      return i
+    }
+    i = i - 1
+  }
+  return -1
+}
+
+func count_digits(s: str) -> int {
+  let total = 0
+  let i = 0
+  while i < len(s) {
+    let code = str_code_at(s, i)
+    if code >= 48 && code <= 57 {
+      total = total + 1
+    }
+    i = i + 1
+  }
+  return total
+}
+
+func starts_any(s: str, prefs: [str]) -> bool {
+  for p in prefs {
+    if len(p) > 0 && str_starts(s, p) {
+      return true
+    }
+  }
+  return false
+}
+
+func ends_any(s: str, sufs: [str]) -> bool {
+  for suf in sufs {
+    if len(suf) > 0 && str_ends(s, suf) {
+      return true
+    }
+  }
+  return false
+}
+
+func indent_block(s: str, levels: int) -> str {
+  let prefix = blank(levels * 2)
+  let parts = str_split(s, "\n")
+  let out = []
+  for p in parts {
+    array_push(out, prefix + p)
+  }
+  return str_join(out, "\n")
+}
+
+func pad_zero_left(s: str, width: int) -> str {
+  guard width > len(s) else {
+    return s
+  }
+  return str_repeat("0", width - len(s)) + s
+}
+
+func equals(a: str, b: str) -> bool {
+  return a == b
+}

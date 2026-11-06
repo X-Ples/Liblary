@@ -1,0 +1,402 @@
+func map_int(arr: [int], f) -> [int] {
+  let out = []
+  for v in arr {
+    array_push(out, f(v))
+  }
+  return out
+}
+
+func map_f64(arr: [f64], f) -> [f64] {
+  let out = []
+  for v in arr {
+    array_push(out, f(v))
+  }
+  return out
+}
+
+func filter_int(arr: [int], f) -> [int] {
+  let out = []
+  for v in arr {
+    if f(v) {
+      array_push(out, v)
+    }
+  }
+  return out
+}
+
+func reduce_int(arr: [int], f, init: int) -> int {
+  let acc = init
+  for v in arr {
+    acc = f(acc, v)
+  }
+  return acc
+}
+
+func fold_f64(arr: [f64], f, init: f64) -> f64 {
+  let acc = init
+  for v in arr {
+    acc = f(acc, v)
+  }
+  return acc
+}
+
+func each(arr: [int], f) -> int {
+  let count = 0
+  for v in arr {
+    f(v)
+    count = count + 1
+  }
+  return count
+}
+
+func take(arr: [int], n: int) -> [int] {
+  let out = []
+  guard n > 0 else {
+    return out
+  }
+  let limit = min(n, len(arr))
+  for i in 0..limit {
+    array_push(out, arr[i])
+  }
+  return out
+}
+
+func drop(arr: [int], n: int) -> [int] {
+  let out = []
+  guard n < len(arr) else {
+    return out
+  }
+  let i = n
+  while i < len(arr) {
+    array_push(out, arr[i])
+    i = i + 1
+  }
+  return out
+}
+
+func zip_int(a: [int], b: [int]) {
+  let out = []
+  let n = min(len(a), len(b))
+  for i in 0..n {
+    array_push(out, [a[i], b[i]])
+  }
+  return out
+}
+
+func flatten(grid) -> [int] {
+  let out = []
+  for row in grid {
+    for v in row {
+      array_push(out, v)
+    }
+  }
+  return out
+}
+
+func contains_int(a: [int], v: int) -> bool {
+  for x in a {
+    if x == v {
+      return true
+    }
+  }
+  return false
+}
+
+func index_of_int(a: [int], v: int) -> int {
+  let i = 0
+  while i < len(a) {
+    if a[i] == v {
+      return i
+    }
+    i = i + 1
+  }
+  return -1
+}
+
+func unique(a: [int]) -> [int] {
+  let out = []
+  for v in a {
+    if !contains_int(out, v) {
+      array_push(out, v)
+    }
+  }
+  return out
+}
+
+func reverse_ints(a: [int]) -> [int] {
+  let out = []
+  let i = len(a) - 1
+  while i >= 0 {
+    array_push(out, a[i])
+    i = i - 1
+  }
+  return out
+}
+
+func sort_desc(a: [int]) -> [int] {
+  let copy = []
+  for v in a {
+    array_push(copy, v)
+  }
+  array_sort(copy)
+  return reverse_ints(copy)
+}
+
+func sum_ints(a: [int]) -> int {
+  let total = 0
+  for v in a {
+    total = total + v
+  }
+  return total
+}
+
+func compose(f, g) {
+  return func(x: int) -> int {
+    return f(g(x))
+  }
+}
+
+func pipeline3(f, g, h) {
+  return func(x: int) -> int {
+    return h(g(f(x)))
+  }
+}
+
+func twice(f) {
+  return func(x: int) -> int {
+    return f(f(x))
+  }
+}
+
+func negate_pred(f) {
+  return func(x: int) -> bool {
+    return !f(x)
+  }
+}
+
+func make_flaky(cell: [int], need: int) {
+  return func() -> Result<int, str> {
+    cell[0] = cell[0] + 1
+    if cell[0] < need {
+      return Err("not ready")
+    }
+    return Ok(cell[0] * 10)
+  }
+}
+
+func retry(f, n: int) -> Result<int, str> {
+  guard n >= 1 else {
+    return Err("no attempts")
+  }
+  let i = 0
+  while i < n - 1 {
+    f()
+    i = i + 1
+  }
+  let v = f()?
+  return Ok(v)
+}
+
+func retry_report(f, n: int) -> Result<str, str> {
+  let v = retry(f, n)?
+  return Ok("retry finished with value " + str(v))
+}
+
+func retry_demo() -> Result<str, str> {
+  let cell = [0]
+  let f = make_flaky(cell, 3)
+  let msg = retry_report(f, 6)?
+  return Ok(msg + " attempts used " + str(cell[0]))
+}
+
+func schedule_ticks(count: int, interval_ms: f64, start_ms: f64) -> [f64] {
+  let out = []
+  guard count > 0 && interval_ms > 0.0 else {
+    return out
+  }
+  let t = start_ms
+  for i in 0..count {
+    array_push(out, t)
+    t = t + interval_ms
+  }
+  return out
+}
+
+func worker_pool_assign(jobs: int, workers: int) {
+  guard jobs > 0 && workers > 0 else {
+    return []
+  }
+  let pools = []
+  for w in 0..workers {
+    array_push(pools, [])
+  }
+  for j in 0..jobs {
+    let w = j % workers
+    array_push(pools[w], j)
+  }
+  return pools
+}
+
+func worker_pool_report(jobs: int, workers: int) -> str {
+  let pools = worker_pool_assign(jobs, workers)
+  guard len(pools) > 0 else {
+    return "no workers"
+  }
+  let out = "workers " + str(len(pools))
+  for w in 0..len(pools) {
+    out = out + "\nworker " + str(w) + " count " + str(len(pools[w])) + " load " + str(sum_ints(pools[w]))
+  }
+  return out
+}
+
+func chunk_ints(a: [int], size: int) {
+  let out = []
+  guard size > 0 else {
+    return out
+  }
+  let cur = []
+  for v in a {
+    array_push(cur, v)
+    if len(cur) == size {
+      array_push(out, cur)
+      cur = []
+    }
+  }
+  if len(cur) > 0 {
+    array_push(out, cur)
+  }
+  return out
+}
+
+func map_str(arr: [str], f) -> [str] {
+  let out = []
+  for v in arr {
+    array_push(out, f(v))
+  }
+  return out
+}
+
+func filter_f64(arr: [f64], f) -> [f64] {
+  let out = []
+  for v in arr {
+    if f(v) {
+      array_push(out, v)
+    }
+  }
+  return out
+}
+
+func reduce_f64(arr: [f64], f, init: f64) -> f64 {
+  let acc = init
+  for v in arr {
+    acc = f(acc, v)
+  }
+  return acc
+}
+
+func iota(n: int) -> [int] {
+  let out = []
+  for i in 0..n {
+    array_push(out, i)
+  }
+  return out
+}
+
+func repeat_val(v: int, n: int) -> [int] {
+  let out = []
+  for i in 0..n {
+    array_push(out, v)
+  }
+  return out
+}
+
+func stepped_range(n: int, step: int) -> [int] {
+  let out = []
+  guard step > 0 else {
+    return out
+  }
+  let i = 0
+  while i < n {
+    array_push(out, i)
+    i = i + step
+  }
+  return out
+}
+
+func zip_sum(a: [int], b: [int]) -> [int] {
+  let out = []
+  let n = min(len(a), len(b))
+  for i in 0..n {
+    array_push(out, a[i] + b[i])
+  }
+  return out
+}
+
+func count_if(arr: [int], f) -> int {
+  let total = 0
+  for v in arr {
+    if f(v) {
+      total = total + 1
+    }
+  }
+  return total
+}
+
+func any(arr: [int], f) -> bool {
+  for v in arr {
+    if f(v) {
+      return true
+    }
+  }
+  return false
+}
+
+func all(arr: [int], f) -> bool {
+  for v in arr {
+    if !f(v) {
+      return false
+    }
+  }
+  return true
+}
+
+func partition(arr: [int], f) {
+  let kept = []
+  let dropped = []
+  for v in arr {
+    if f(v) {
+      array_push(kept, v)
+    } else {
+      array_push(dropped, v)
+    }
+  }
+  return [kept, dropped]
+}
+
+func clamp_int(v: int, lo: int, hi: int) -> int {
+  if v < lo {
+    return lo
+  }
+  if v > hi {
+    return hi
+  }
+  return v
+}
+
+func pipeline4(f, g, h, k) {
+  return func(x: int) -> int {
+    return k(h(g(f(x))))
+  }
+}
+
+func batch_run(jobs: int, workers: int, f) -> int {
+  guard jobs > 0 && workers > 0 else {
+    return 0
+  }
+  let done = 0
+  for j in 0..jobs {
+    f(j % workers, j)
+    done = done + 1
+  }
+  return done
+}

@@ -1,0 +1,416 @@
+
+const PIN_IN = 0
+const PIN_OUT = 1
+const PULL_NONE = 0
+const PULL_UP = 1
+const PULL_DOWN = 2
+const EDGE_RISE = 1
+const EDGE_FALL = 2
+
+mmio let IO_MUX: u8 @ 1072971776
+mmio let GPIO_OUT: u8 @ 1072971780
+mmio let GPIO_OUT_W1TS: u8 @ 1072971784
+mmio let GPIO_OUT_W1TC: u8 @ 1072971788
+mmio let GPIO_ENABLE: u8 @ 1072971808
+mmio let GPIO_ENABLE_W1TS: u8 @ 1072971812
+mmio let GPIO_ENABLE_W1TC: u8 @ 1072971816
+mmio let GPIO_IN: u8 @ 1072971836
+mmio let GPIO_STATUS: u8 @ 1072971800
+mmio let I2C_DATA: u8 @ 1073033216
+mmio let I2C_CTRL: u8 @ 1073033220
+mmio let SPI_DATA: u8 @ 1073102848
+mmio let SPI_CTRL: u8 @ 1073102852
+mmio let UART_DATA: u8 @ 1073143808
+mmio let UART_STATUS: u8 @ 1073143812
+mmio let PWM_LEVEL: u8 @ 1073070080
+mmio let ADC_RAW: u8 @ 1072996352
+
+func bit_mask(bit: int) -> int {
+  guard bit >= 0 && bit <= 7 else {
+    return 0
+  }
+  return 1 << bit
+}
+
+func set_bit(v: int, bit: int) -> int {
+  return v | bit_mask(bit)
+}
+
+func clear_bit(v: int, bit: int) -> int {
+  return v & (255 ^ bit_mask(bit))
+}
+
+func read_bit(v: int, bit: int) -> int {
+  return (v >> bit) & 1
+}
+
+func hex2(v: int) -> str {
+  let digits = "0123456789ABCDEF"
+  let hi = (v >> 4) & 15
+  let lo = v & 15
+  return str_char_at(digits, hi) + str_char_at(digits, lo)
+}
+
+func pin_init(pin: int, mode: int, pull: int) -> int {
+  if mode == PIN_OUT {
+    GPIO_ENABLE_W1TS = bit_mask(pin)
+  } else {
+    GPIO_ENABLE_W1TC = bit_mask(pin)
+  }
+  IO_MUX = (pull & 3) << 2
+  return 0
+}
+
+func pin_write(pin: int, value: int) -> int {
+  if value == 0 {
+    GPIO_OUT = clear_bit(GPIO_OUT, pin)
+  } else {
+    GPIO_OUT = set_bit(GPIO_OUT, pin)
+  }
+  return 0
+}
+
+func pin_clear(pin: int) -> int {
+  GPIO_OUT = clear_bit(GPIO_OUT, pin)
+  return 0
+}
+
+func pin_set(pin: int) -> int {
+  GPIO_OUT = set_bit(GPIO_OUT, pin)
+  return 0
+}
+
+func pin_read(pin: int) -> int {
+  return read_bit(GPIO_IN, pin)
+}
+
+func pin_toggle(pin: int) -> int {
+  let cur = GPIO_OUT
+  if read_bit(cur, pin) == 1 {
+    GPIO_OUT = clear_bit(cur, pin)
+  } else {
+    GPIO_OUT = set_bit(cur, pin)
+  }
+  return 0
+}
+
+func digital_high(pin: int) -> int {
+  GPIO_OUT = set_bit(GPIO_OUT, pin)
+  return GPIO_OUT
+}
+
+func digital_low(pin: int) -> int {
+  GPIO_OUT = clear_bit(GPIO_OUT, pin)
+  return GPIO_OUT
+}
+
+func digital_is_high(pin: int) -> int {
+  return read_bit(GPIO_IN, pin)
+}
+
+func digital_is_low(pin: int) -> int {
+  return 1 - read_bit(GPIO_IN, pin)
+}
+
+func delay_ms(ticks: int) -> int {
+  let i = 0
+  while i < ticks {
+    asm!("nop")
+    i = i + 1
+  }
+  return ticks
+}
+
+func sleep_ms(ms: int) -> int {
+  return delay_ms(ms * 2)
+}
+
+func sleep_us(us: int) -> int {
+  return delay_ms(us)
+}
+
+func now_ms() -> int {
+  return clock_ms()
+}
+
+func elapsed_since(start: int) -> int {
+  return clock_ms() - start
+}
+
+func pwm_init() -> int {
+  PWM_LEVEL = 0
+  return 0
+}
+
+func pwm_set_duty(duty: int) -> int {
+  let d = duty
+  if d < 0 {
+    d = 0
+  }
+  if d > 255 {
+    d = 255
+  }
+  PWM_LEVEL = d
+  return PWM_LEVEL
+}
+
+func pwm_get_duty() -> int {
+  return PWM_LEVEL
+}
+
+func pwm_fade(steps: int) -> int {
+  let peak = 0
+  let i = 0
+  while i < steps {
+    let d = (i * 255) / steps
+    pwm_set_duty(d)
+    if d > peak {
+      peak = d
+    }
+    i = i + 1
+  }
+  pwm_set_duty(0)
+  return peak
+}
+
+func i2c_start(pin_clk: int, pin_data: int) -> int {
+  pin_write(pin_data, 1)
+  pin_write(pin_clk, 1)
+  pin_write(pin_data, 0)
+  pin_write(pin_clk, 0)
+  return 0
+}
+
+func i2c_stop(pin_clk: int, pin_data: int) -> int {
+  pin_write(pin_data, 0)
+  pin_write(pin_clk, 1)
+  pin_write(pin_data, 1)
+  return 0
+}
+
+func i2c_write_byte(pin_clk: int, pin_data: int, value: int) -> int {
+  let i = 7
+  while i >= 0 {
+    if read_bit(value, i) == 1 {
+      pin_write(pin_data, 1)
+    } else {
+      pin_write(pin_data, 0)
+    }
+    pin_write(pin_clk, 1)
+    delay_ms(1)
+    pin_write(pin_clk, 0)
+    i = i - 1
+  }
+  pin_write(pin_data, 1)
+  delay_ms(1)
+  let ack = pin_read(pin_data)
+  return 1 - ack
+}
+
+func i2c_send(pin_clk: int, pin_data: int, addr: int, value: int) -> int {
+  I2C_CTRL = addr & 255
+  i2c_start(pin_clk, pin_data)
+  let ok = i2c_write_byte(pin_clk, pin_data, addr << 1)
+  if ok == 1 {
+    i2c_write_byte(pin_clk, pin_data, value & 255)
+  }
+  i2c_stop(pin_clk, pin_data)
+  I2C_DATA = value & 255
+  return ok
+}
+
+func spi_transfer(pin_clk: int, pin_mosi: int, pin_miso: int, value: int) -> int {
+  SPI_CTRL = value & 255
+  let acc = 0
+  let i = 7
+  while i >= 0 {
+    if read_bit(value, i) == 1 {
+      pin_write(pin_mosi, 1)
+    } else {
+      pin_write(pin_mosi, 0)
+    }
+    pin_write(pin_clk, 1)
+    delay_ms(1)
+    if pin_read(pin_miso) == 1 {
+      acc = set_bit(acc, i)
+    }
+    pin_write(pin_clk, 0)
+    i = i - 1
+  }
+  SPI_DATA = acc
+  return acc
+}
+
+func uart_write(value: int) -> int {
+  UART_DATA = value & 255
+  return UART_DATA
+}
+
+func uart_read() -> int {
+  return UART_DATA
+}
+
+func uart_busy() -> int {
+  return read_bit(UART_STATUS, 0)
+}
+
+func uart_print(text: str) -> int {
+  let sent = 0
+  let i = 0
+  while i < len(text) {
+    uart_write(str_code_at(text, i))
+    sent = sent + 1
+    i = i + 1
+  }
+  return sent
+}
+
+func uart_frame(payload: [int]) -> [int] {
+  let frame = []
+  array_push(frame, 170)
+  array_push(frame, len(payload))
+  let sum = 0
+  for b in payload {
+    array_push(frame, b & 255)
+    sum = (sum + (b & 255)) & 255
+  }
+  array_push(frame, sum)
+  return frame
+}
+
+func adc_read() -> int {
+  return ADC_RAW & 255
+}
+
+func adc_read_avg(samples: int) -> int {
+  let total = 0
+  let i = 0
+  while i < samples {
+    total = total + adc_read()
+    i = i + 1
+  }
+  if samples <= 0 {
+    return 0
+  }
+  return total / samples
+}
+
+let nvs_keys: [str] = []
+let nvs_vals: [int] = []
+
+func nvs_set(key: str, value: int) -> int {
+  let i = 0
+  while i < len(nvs_keys) {
+    if nvs_keys[i] == key {
+      nvs_vals[i] = value
+      return 1
+    }
+    i = i + 1
+  }
+  array_push(nvs_keys, key)
+  array_push(nvs_vals, value)
+  return 0
+}
+
+func nvs_get(key: str) -> int {
+  let i = 0
+  while i < len(nvs_keys) {
+    if nvs_keys[i] == key {
+      return nvs_vals[i]
+    }
+    i = i + 1
+  }
+  return -1
+}
+
+func nvs_count() -> int {
+  return len(nvs_keys)
+}
+
+let net_connected = 0
+let net_packets = 0
+
+func net_connect() -> int {
+  delay_ms(2)
+  net_connected = 1
+  return net_connected
+}
+
+func net_disconnect() -> int {
+  net_connected = 0
+  return 0
+}
+
+func net_is_connected() -> int {
+  return net_connected
+}
+
+func net_send(value: int) -> int {
+  guard net_connected == 1 else {
+    return -1
+  }
+  net_packets = net_packets + 1
+  return net_packets
+}
+
+let irq_count = 0
+let irq_last = 0
+
+@interrupt func iot_irq_handler() {
+  irq_count = irq_count + 1
+  irq_last = GPIO_IN
+}
+
+func irq_enable(mask: int) -> int {
+  GPIO_STATUS = GPIO_STATUS | mask
+  return GPIO_STATUS
+}
+
+func irq_pending() -> int {
+  return GPIO_STATUS
+}
+
+func irq_clear(mask: int) -> int {
+  GPIO_STATUS = GPIO_STATUS & (255 ^ (mask & 255))
+  return GPIO_STATUS
+}
+
+func self_test() -> int {
+  let bad = 0
+  for p in [0, 3, 7] {
+    pin_init(p, PIN_OUT, PULL_NONE)
+    digital_high(p)
+    if read_bit(GPIO_OUT, p) != 1 {
+      bad = bad + 1
+    }
+    digital_low(p)
+    if read_bit(GPIO_OUT, p) != 0 {
+      bad = bad + 1
+    }
+  }
+  pwm_set_duty(300)
+  if pwm_get_duty() != 255 {
+    bad = bad + 1
+  }
+  nvs_set("boot", 42)
+  if nvs_get("boot") != 42 {
+    bad = bad + 1
+  }
+  let frame = uart_frame([1, 2, 3])
+  if len(frame) != 6 {
+    bad = bad + 1
+  }
+  return bad
+}
+
+func report() -> str {
+  let out = "iot lib report"
+  out = out + "\nGPIO_OUT   " + hex2(GPIO_OUT)
+  out = out + "\nGPIO_IN    " + hex2(GPIO_IN)
+  out = out + "\nGPIO_EN    " + hex2(GPIO_ENABLE)
+  out = out + "\nPWM_LEVEL  " + hex2(PWM_LEVEL)
+  out = out + "\nnvs items  " + str(nvs_count())
+  out = out + "\nnet pkts   " + str(net_packets)
+  out = out + "\nirq count  " + str(irq_count)
+  return out
+}

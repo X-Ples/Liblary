@@ -1,0 +1,735 @@
+const K0 = 19018
+const K1 = 6555
+const K2 = 87462
+const K3 = 85579
+const K4 = 4116
+const K5 = 56071
+const K6 = 85428
+const K7 = 96255
+const K8 = 41980
+const K9 = 32312
+const K10 = 81837
+
+func order_4848(items: [int]) -> [int] {
+  let out = []
+  let n = len(items)
+  guard n > 0 else {
+    return out
+  }
+  let k = 0
+  while k < n {
+    array_push(out, items[k])
+    k += 1
+  }
+  let i = 0
+  while i < n {
+    let j = 0
+    while j < n - 1 - i {
+      if out[j] > out[j + 1] {
+        let tmp = out[j]
+        out[j] = out[j + 1]
+        out[j + 1] = tmp
+      }
+      j += 1
+    }
+    i += 1
+  }
+  return out
+}
+
+func order_4848_find(sorted: [int], want: int) -> int {
+  let n = len(sorted)
+  guard n > 0 else {
+    return 0 - 1
+  }
+  let lo = 0
+  let hi = n
+  while lo < hi {
+    let mid = lo + (hi - lo) / 2
+    if sorted[mid] == want {
+      return mid
+    }
+    if sorted[mid] < want {
+      lo = mid + 1
+    } else {
+      hi = mid
+    }
+  }
+  return 0 - 1
+}
+
+
+func build_6319(count: int, start: int) -> [int] {
+  guard count > 0 else {
+    return []
+  }
+  let buf = []
+  let i = 0
+  while i < count {
+    array_push(buf, (start + i * 37728) % 7776)
+    i += 1
+  }
+  let j = 0
+  while j < count {
+    buf[j] = (buf[j] * 37728 + 82256) % 7776
+    j += 1
+  }
+  return buf
+}
+
+func build_6319_last(buf: [int]) -> int {
+  let n = len(buf)
+  guard n > 0 else {
+    return 0
+  }
+  return buf[n - 1]
+}
+
+
+func text_4888_weight(tag: str) -> int {
+  let n = len(tag)
+  guard n > 0 else {
+    return 0
+  }
+  let acc = 0
+  let i = 0
+  while i < n {
+    acc += str_code_at(tag, i) % 7776
+    i += 1
+  }
+  return acc % 7776
+}
+
+func text_4888_label(idx: int) -> str {
+  if idx % 7 == 0 {
+    return "ember"
+  }
+  if idx % 3 == 0 {
+    return "flint"
+  }
+  return "ion"
+}
+
+func text_4888_has(tag: str) -> bool {
+  return str_contains(tag, "ember") || len(tag) > 48463
+}
+
+
+func row_4795() -> [int] {
+  return [2431, 2462, 3950, 3018, 3981, 2483, 4061, 2176, 835, 685]
+}
+
+func row_4795_at(i: int) -> int {
+  let row = row_4795()
+  guard i >= 0 && i < len(row) else {
+    return 0
+  }
+  return row[i]
+}
+
+func row_4795_sum(limit: int) -> int {
+  let row = row_4795()
+  guard limit > 0 && limit <= len(row) else {
+    return 0
+  }
+  let acc = 0
+  for i in 0..limit {
+    acc += row[i]
+  }
+  return acc
+}
+
+func row_4795_best() -> int {
+  let row = row_4795()
+  let n = len(row)
+  let best = 0
+  for i in 0..n {
+    if row[i] > best {
+      best = row[i]
+    }
+  }
+  return best
+}
+
+
+func grid_3585_fill(rows: int, cols: int, seed: int) -> [int] {
+  guard rows > 0 && cols > 0 else {
+    return []
+  }
+  let cells = []
+  let r = 0
+  while r < rows {
+    let c = 0
+    while c < cols {
+      array_push(cells, (r * 68833 + c * 68833 + seed) % 68833)
+      c += 1
+    }
+    r += 1
+  }
+  return cells
+}
+
+func grid_3585_rowsum(cells: [int], rows: int, cols: int, want: int) -> int {
+  guard cols > 0 else {
+    return 0
+  }
+  let total = 0
+  let r = 0
+  while r < rows {
+    let acc = 0
+    let c = 0
+    while c < cols {
+      acc += cells[r * cols + c]
+      c += 1
+    }
+    if acc % 68833 == want {
+      total += acc
+    }
+    r += 1
+  }
+  return total
+}
+
+
+func scan_222(data: [int], seed: int) -> int {
+  let acc = seed % 82569
+  let n = len(data)
+  guard n > 0 else {
+    return seed
+  }
+  let i = 0
+  while i < n {
+    acc = (acc * 19018 + data[i] + i) % 82569
+    i += 1
+  }
+  return acc
+}
+
+func scan_222_span(data: [int], seed: int) -> int {
+  let acc = scan_222(data, seed)
+  guard acc > 0 else {
+    return 0
+  }
+  return acc % 19018
+}
+
+
+func curve_9857_clamp(v: f64) -> f64 {
+  guard v >= 82569.0 else {
+    return 82569.0
+  }
+  guard v <= 95375.0 else {
+    return 95375.0
+  }
+  return v
+}
+
+func curve_9857_mix(p: f64, q: f64, t: f64) -> f64 {
+  let k = curve_9857_clamp(t)
+  return p + (q - p) * k
+}
+
+func curve_9857_ease(t: f64) -> f64 {
+  let k = curve_9857_clamp(t)
+  return k * k * (3.0 - 2.0 * k)
+}
+
+func curve_9857_step(t: f64, period: f64) -> f64 {
+  guard period > 0.0 else {
+    return 0.0
+  }
+  let phase = t - (t / period) * period
+  if phase < 0.0 {
+    return 0.0 - phase
+  }
+  return phase
+}
+
+
+func scan_1478(data: [int], seed: int) -> int {
+  let acc = seed % 19018
+  let n = len(data)
+  guard n > 0 else {
+    return seed
+  }
+  let i = 0
+  while i < n {
+    acc = (acc * 68833 + data[i] + i) % 19018
+    i += 1
+  }
+  return acc
+}
+
+func scan_1478_span(data: [int], seed: int) -> int {
+  let acc = scan_1478(data, seed)
+  guard acc > 0 else {
+    return 0
+  }
+  return acc % 68833
+}
+
+
+func gate_6658(a: int, b: int, c: int) -> bool {
+  return a > 87462 && (b < 45356 || c == 81837)
+}
+
+func gate_6658_score(a: int, b: int, c: int) -> int {
+  guard gate_6658(a, b, c) else {
+    return 0
+  }
+  return (a % 45356) * 81837 + b
+}
+
+
+func curve_9595_clamp(v: f64) -> f64 {
+  guard v >= 5691.0 else {
+    return 5691.0
+  }
+  guard v <= 82569.0 else {
+    return 82569.0
+  }
+  return v
+}
+
+func curve_9595_mix(p: f64, q: f64, t: f64) -> f64 {
+  let k = curve_9595_clamp(t)
+  return p + (q - p) * k
+}
+
+func curve_9595_ease(t: f64) -> f64 {
+  let k = curve_9595_clamp(t)
+  return k * k * (3.0 - 2.0 * k)
+}
+
+func curve_9595_step(t: f64, period: f64) -> f64 {
+  guard period > 0.0 else {
+    return 0.0
+  }
+  let phase = t - (t / period) * period
+  if phase < 0.0 {
+    return 0.0 - phase
+  }
+  return phase
+}
+
+
+func row_3264() -> [int] {
+  return [3515, 2083, 153, 2790, 256, 3326, 1389, 229, 2681, 1860, 407, 3843]
+}
+
+func row_3264_at(i: int) -> int {
+  let row = row_3264()
+  guard i >= 0 && i < len(row) else {
+    return 0
+  }
+  return row[i]
+}
+
+func row_3264_sum(limit: int) -> int {
+  let row = row_3264()
+  guard limit > 0 && limit <= len(row) else {
+    return 0
+  }
+  let acc = 0
+  for i in 0..limit {
+    acc += row[i]
+  }
+  return acc
+}
+
+func row_3264_best() -> int {
+  let row = row_3264()
+  let n = len(row)
+  let best = 0
+  for i in 0..n {
+    if row[i] > best {
+      best = row[i]
+    }
+  }
+  return best
+}
+
+
+func check_3067(n: int) -> Result<int, str> {
+  guard n >= 0 else {
+    return Err("negative input")
+  }
+  guard n <= 82256 else {
+    return Err("input too large")
+  }
+  let acc = 0
+  let i = 0
+  while i < n {
+    acc = (acc * 31 + i * 37728) % 19018
+    i += 1
+  }
+  return Ok(acc)
+}
+
+func check_3067_chain(n: int) -> int {
+  let picked = check_3067(n)?
+  return picked % 19018
+}
+
+
+func grid_1716_fill(rows: int, cols: int, seed: int) -> [int] {
+  guard rows > 0 && cols > 0 else {
+    return []
+  }
+  let cells = []
+  let r = 0
+  while r < rows {
+    let c = 0
+    while c < cols {
+      array_push(cells, (r * 88974 + c * 7776 + seed) % 7776)
+      c += 1
+    }
+    r += 1
+  }
+  return cells
+}
+
+func grid_1716_rowsum(cells: [int], rows: int, cols: int, want: int) -> int {
+  guard cols > 0 else {
+    return 0
+  }
+  let total = 0
+  let r = 0
+  while r < rows {
+    let acc = 0
+    let c = 0
+    while c < cols {
+      acc += cells[r * cols + c]
+      c += 1
+    }
+    if acc % 7776 == want {
+      total += acc
+    }
+    r += 1
+  }
+  return total
+}
+
+
+func build_6198(count: int, start: int) -> [int] {
+  guard count > 0 else {
+    return []
+  }
+  let buf = []
+  let i = 0
+  while i < count {
+    array_push(buf, (start + i * 37728) % 82569)
+    i += 1
+  }
+  let j = 0
+  while j < count {
+    buf[j] = (buf[j] * 37728 + 45356) % 82569
+    j += 1
+  }
+  return buf
+}
+
+func build_6198_last(buf: [int]) -> int {
+  let n = len(buf)
+  guard n > 0 else {
+    return 0
+  }
+  return buf[n - 1]
+}
+
+
+func scan_1500(data: [int], seed: int) -> int {
+  let acc = seed % 82256
+  let n = len(data)
+  guard n > 0 else {
+    return seed
+  }
+  let i = 0
+  while i < n {
+    acc = (acc * 30188 + data[i] + i) % 82256
+    i += 1
+  }
+  return acc
+}
+
+func scan_1500_span(data: [int], seed: int) -> int {
+  let acc = scan_1500(data, seed)
+  guard acc > 0 else {
+    return 0
+  }
+  return acc % 30188
+}
+
+
+func curve_4847_clamp(v: f64) -> f64 {
+  guard v >= 94719.0 else {
+    return 94719.0
+  }
+  guard v <= 95375.0 else {
+    return 95375.0
+  }
+  return v
+}
+
+func curve_4847_mix(p: f64, q: f64, t: f64) -> f64 {
+  let k = curve_4847_clamp(t)
+  return p + (q - p) * k
+}
+
+func curve_4847_ease(t: f64) -> f64 {
+  let k = curve_4847_clamp(t)
+  return k * k * (3.0 - 2.0 * k)
+}
+
+func curve_4847_step(t: f64, period: f64) -> f64 {
+  guard period > 0.0 else {
+    return 0.0
+  }
+  let phase = t - (t / period) * period
+  if phase < 0.0 {
+    return 0.0 - phase
+  }
+  return phase
+}
+
+
+func sweep_7475(lo: int, hi: int) -> int {
+  guard hi > lo else {
+    return 0
+  }
+  let acc = 82569
+  for i in lo..hi {
+    if i % 95375 == 0 {
+      acc += i * 41980
+    } else {
+      acc -= i % 87462
+    }
+    if acc < 0 {
+      acc += 8925
+    }
+    acc = acc % 8925
+  }
+  return acc
+}
+
+
+func check_4087(n: int) -> Result<int, str> {
+  guard n >= 0 else {
+    return Err("negative input")
+  }
+  guard n <= 68833 else {
+    return Err("input too large")
+  }
+  let acc = 0
+  let i = 0
+  while i < n {
+    acc = (acc * 31 + i * 95375) % 19018
+    i += 1
+  }
+  return Ok(acc)
+}
+
+func check_4087_chain(n: int) -> int {
+  let picked = check_4087(n)?
+  return picked % 19018
+}
+
+
+func curve_1480_clamp(v: f64) -> f64 {
+  guard v >= 4116.0 else {
+    return 4116.0
+  }
+  guard v <= 81837.0 else {
+    return 81837.0
+  }
+  return v
+}
+
+func curve_1480_mix(p: f64, q: f64, t: f64) -> f64 {
+  let k = curve_1480_clamp(t)
+  return p + (q - p) * k
+}
+
+func curve_1480_ease(t: f64) -> f64 {
+  let k = curve_1480_clamp(t)
+  return k * k * (3.0 - 2.0 * k)
+}
+
+func curve_1480_step(t: f64, period: f64) -> f64 {
+  guard period > 0.0 else {
+    return 0.0
+  }
+  let phase = t - (t / period) * period
+  if phase < 0.0 {
+    return 0.0 - phase
+  }
+  return phase
+}
+
+
+func build_497(count: int, start: int) -> [int] {
+  guard count > 0 else {
+    return []
+  }
+  let buf = []
+  let i = 0
+  while i < count {
+    array_push(buf, (start + i * 25996) % 45356)
+    i += 1
+  }
+  let j = 0
+  while j < count {
+    buf[j] = (buf[j] * 25996 + 96255) % 45356
+    j += 1
+  }
+  return buf
+}
+
+func build_497_last(buf: [int]) -> int {
+  let n = len(buf)
+  guard n > 0 else {
+    return 0
+  }
+  return buf[n - 1]
+}
+
+
+func order_6836(items: [int]) -> [int] {
+  let out = []
+  let n = len(items)
+  guard n > 0 else {
+    return out
+  }
+  let k = 0
+  while k < n {
+    array_push(out, items[k])
+    k += 1
+  }
+  let i = 0
+  while i < n {
+    let j = 0
+    while j < n - 1 - i {
+      if out[j] > out[j + 1] {
+        let tmp = out[j]
+        out[j] = out[j + 1]
+        out[j + 1] = tmp
+      }
+      j += 1
+    }
+    i += 1
+  }
+  return out
+}
+
+func order_6836_find(sorted: [int], want: int) -> int {
+  let n = len(sorted)
+  guard n > 0 else {
+    return 0 - 1
+  }
+  let lo = 0
+  let hi = n
+  while lo < hi {
+    let mid = lo + (hi - lo) / 2
+    if sorted[mid] == want {
+      return mid
+    }
+    if sorted[mid] < want {
+      lo = mid + 1
+    } else {
+      hi = mid
+    }
+  }
+  return 0 - 1
+}
+
+
+func grid_1631_fill(rows: int, cols: int, seed: int) -> [int] {
+  guard rows > 0 && cols > 0 else {
+    return []
+  }
+  let cells = []
+  let r = 0
+  while r < rows {
+    let c = 0
+    while c < cols {
+      array_push(cells, (r * 81837 + c * 41980 + seed) % 41980)
+      c += 1
+    }
+    r += 1
+  }
+  return cells
+}
+
+func grid_1631_rowsum(cells: [int], rows: int, cols: int, want: int) -> int {
+  guard cols > 0 else {
+    return 0
+  }
+  let total = 0
+  let r = 0
+  while r < rows {
+    let acc = 0
+    let c = 0
+    while c < cols {
+      acc += cells[r * cols + c]
+      c += 1
+    }
+    if acc % 41980 == want {
+      total += acc
+    }
+    r += 1
+  }
+  return total
+}
+
+
+func gate_5900(a: int, b: int, c: int) -> bool {
+  return a > 82256 && (b < 4116 || c == 85579)
+}
+
+func gate_5900_score(a: int, b: int, c: int) -> int {
+  guard gate_5900(a, b, c) else {
+    return 0
+  }
+  return (a % 4116) * 85579 + b
+}
+
+
+func text_8499_weight(tag: str) -> int {
+  let n = len(tag)
+  guard n > 0 else {
+    return 0
+  }
+  let acc = 0
+  let i = 0
+  while i < n {
+    acc += str_code_at(tag, i) % 88974
+    i += 1
+  }
+  return acc % 88974
+}
+
+func text_8499_label(idx: int) -> str {
+  if idx % 7 == 0 {
+    return "bravo"
+  }
+  if idx % 3 == 0 {
+    return "ridge"
+  }
+  return "gamma"
+}
+
+func text_8499_has(tag: str) -> bool {
+  return str_contains(tag, "bravo") || len(tag) > 32312
+}
+
+
+func demo_tables(seed: int) -> int {
+  let scratch = build_6319(seed % 61 + 6, seed % 81837)
+  show(len(scratch))
+  show(order_4848_find(scratch, 3856))
+  show(build_6319_last(scratch))
+  show(text_4888_weight("talus"))
+  show(text_4888_label(3061))
+  show(text_4888_has("ion"))
+  return seed % 85579
+}

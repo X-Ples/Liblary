@@ -1,0 +1,447 @@
+const EULER = 2.718281828459045
+const LN2 = 0.6931471805599453
+
+func copy_array(a: [f64]) -> [f64] {
+  let out = []
+  for v in a {
+    array_push(out, v)
+  }
+  return out
+}
+
+func copy_int_array(a: [int]) -> [int] {
+  let out = []
+  for v in a {
+    array_push(out, v)
+  }
+  return out
+}
+
+func insertion_sort_inplace(a: [f64]) -> [f64] {
+  let n = len(a)
+  let i = 1
+  while i < n {
+    let key = a[i]
+    let j = i - 1
+    while j >= 0 && a[j] > key {
+      a[j + 1] = a[j]
+      j = j - 1
+    }
+    a[j + 1] = key
+    i = i + 1
+  }
+  return a
+}
+
+func sort_copy(a: [f64]) -> [f64] {
+  let b = copy_array(a)
+  return insertion_sort_inplace(b)
+}
+
+func sum(a: [f64]) -> f64 {
+  let total = 0.0
+  for v in a {
+    total = total + v
+  }
+  return total
+}
+
+func sum_sq(a: [f64]) -> f64 {
+  let total = 0.0
+  for v in a {
+    total = total + v * v
+  }
+  return total
+}
+
+func mean(a: [f64]) -> f64 {
+  guard len(a) > 0 else {
+    return 0.0
+  }
+  return sum(a) / float(len(a))
+}
+
+func median(a: [f64]) -> f64 {
+  let n = len(a)
+  guard n > 0 else {
+    return 0.0
+  }
+  let sorted = sort_copy(a)
+  if n % 2 == 1 {
+    return sorted[n / 2]
+  }
+  return (sorted[n / 2 - 1] + sorted[n / 2]) / 2.0
+}
+
+func amin(a: [f64]) -> f64 {
+  guard len(a) > 0 else {
+    return 0.0
+  }
+  let best = a[0]
+  for v in a {
+    if v < best {
+      best = v
+    }
+  }
+  return best
+}
+
+func amax(a: [f64]) -> f64 {
+  guard len(a) > 0 else {
+    return 0.0
+  }
+  let best = a[0]
+  for v in a {
+    if v > best {
+      best = v
+    }
+  }
+  return best
+}
+
+func arange(a: [f64]) -> f64 {
+  guard len(a) > 0 else {
+    return 0.0
+  }
+  return amax(a) - amin(a)
+}
+
+func variance(a: [f64]) -> f64 {
+  let n = len(a)
+  guard n > 0 else {
+    return 0.0
+  }
+  let m = mean(a)
+  let total = 0.0
+  for v in a {
+    let d = v - m
+    total = total + d * d
+  }
+  return total / float(n)
+}
+
+func stddev(a: [f64]) -> f64 {
+  return sqrt(variance(a))
+}
+
+func mode(a: [f64]) {
+  let vals = []
+  let counts = []
+  for v in a {
+    let found = -1
+    let j = 0
+    while j < len(vals) {
+      if vals[j] == v {
+        found = j
+        break
+      }
+      j = j + 1
+    }
+    if found >= 0 {
+      counts[found] = counts[found] + 1
+    } else {
+      array_push(vals, v)
+      array_push(counts, 1)
+    }
+  }
+  guard len(vals) > 0 else {
+    return [0.0, 0]
+  }
+  let best = 0
+  let i = 1
+  while i < len(counts) {
+    if counts[i] > counts[best] {
+      best = i
+    }
+    i = i + 1
+  }
+  return [vals[best], counts[best]]
+}
+
+func percentile(a: [f64], p: f64) -> f64 {
+  let n = len(a)
+  guard n > 0 else {
+    return 0.0
+  }
+  let sorted = sort_copy(a)
+  if n == 1 {
+    return sorted[0]
+  }
+  let pos = p / 100.0 * float(n - 1)
+  guard pos >= 0.0 else {
+    return sorted[0]
+  }
+  let lo = int(floor(pos))
+  let hi = lo + 1
+  if hi >= n {
+    return sorted[n - 1]
+  }
+  let frac = pos - float(lo)
+  return sorted[lo] * (1.0 - frac) + sorted[hi] * frac
+}
+
+func covariance(a: [f64], b: [f64]) -> f64 {
+  let n = len(a)
+  guard n > 0 && len(b) == n else {
+    return 0.0
+  }
+  let ma = mean(a)
+  let mb = mean(b)
+  let total = 0.0
+  let i = 0
+  while i < n {
+    total = total + (a[i] - ma) * (b[i] - mb)
+    i = i + 1
+  }
+  return total / float(n)
+}
+
+func pearson(a: [f64], b: [f64]) -> f64 {
+  let n = len(a)
+  guard n > 0 && len(b) == n else {
+    return 0.0
+  }
+  let ma = mean(a)
+  let mb = mean(b)
+  let num = 0.0
+  let da2 = 0.0
+  let db2 = 0.0
+  let i = 0
+  while i < n {
+    let da = a[i] - ma
+    let db = b[i] - mb
+    num = num + da * db
+    da2 = da2 + da * da
+    db2 = db2 + db * db
+    i = i + 1
+  }
+  let den = sqrt(da2 * db2)
+  guard den > 0.0 else {
+    return 0.0
+  }
+  return num / den
+}
+
+func linreg_slope(a: [f64], b: [f64]) -> f64 {
+  let n = len(a)
+  guard n > 0 && len(b) == n else {
+    return 0.0
+  }
+  let ma = mean(a)
+  let mb = mean(b)
+  let num = 0.0
+  let den = 0.0
+  let i = 0
+  while i < n {
+    let da = a[i] - ma
+    let db = b[i] - mb
+    num = num + da * db
+    den = den + da * da
+    i = i + 1
+  }
+  guard den != 0.0 else {
+    return 0.0
+  }
+  return num / den
+}
+
+func linreg_intercept(a: [f64], b: [f64]) -> f64 {
+  let slope = linreg_slope(a, b)
+  return mean(b) - slope * mean(a)
+}
+
+func linear_regression(a: [f64], b: [f64]) {
+  let slope = linreg_slope(a, b)
+  let intercept = mean(b) - slope * mean(a)
+  return [slope, intercept]
+}
+
+func histogram(a: [f64], buckets: int) -> [int] {
+  let counts = []
+  guard buckets > 0 else {
+    return counts
+  }
+  let i = 0
+  while i < buckets {
+    array_push(counts, 0)
+    i = i + 1
+  }
+  let n = len(a)
+  guard n > 0 else {
+    return counts
+  }
+  let mn = amin(a)
+  let mx = amax(a)
+  if mx == mn {
+    counts[0] = n
+    return counts
+  }
+  let width = (mx - mn) / float(buckets)
+  for v in a {
+    let idx = int((v - mn) / width)
+    if idx >= buckets {
+      idx = buckets - 1
+    }
+    if idx < 0 {
+      idx = 0
+    }
+    counts[idx] = counts[idx] + 1
+  }
+  return counts
+}
+
+func histogram_edges(a: [f64], buckets: int) -> [f64] {
+  let edges = []
+  guard buckets > 0 && len(a) > 0 else {
+    return edges
+  }
+  let mn = amin(a)
+  let mx = amax(a)
+  let width = (mx - mn) / float(buckets)
+  let i = 0
+  let total = buckets + 1
+  while i < total {
+    array_push(edges, mn + width * float(i))
+    i = i + 1
+  }
+  return edges
+}
+
+func z_scores(a: [f64]) -> [f64] {
+  let out = []
+  let n = len(a)
+  guard n > 0 else {
+    return out
+  }
+  let m = mean(a)
+  let sd = stddev(a)
+  guard sd > 0.0 else {
+    let zeros = []
+    let k = 0
+    while k < n {
+      array_push(zeros, 0.0)
+      k = k + 1
+    }
+    return zeros
+  }
+  for v in a {
+    array_push(out, (v - m) / sd)
+  }
+  return out
+}
+
+func moving_average(a: [f64], w: int) -> [f64] {
+  let out = []
+  let n = len(a)
+  guard n > 0 && w > 0 else {
+    return out
+  }
+  let i = 0
+  while i < n {
+    let start = i - w + 1
+    if start < 0 {
+      start = 0
+    }
+    let total = 0.0
+    let j = start
+    while j <= i {
+      total = total + a[j]
+      j = j + 1
+    }
+    array_push(out, total / float(i - start + 1))
+    i = i + 1
+  }
+  return out
+}
+
+func ewma(a: [f64], alpha: f64) -> [f64] {
+  let out = []
+  let n = len(a)
+  guard n > 0 else {
+    return out
+  }
+  let s = a[0]
+  array_push(out, s)
+  let i = 1
+  while i < n {
+    s = alpha * a[i] + (1.0 - alpha) * s
+    array_push(out, s)
+    i = i + 1
+  }
+  return out
+}
+
+func ln_appx(x: f64) -> f64 {
+  guard x > 0.0 else {
+    return 0.0
+  }
+  let m = x
+  let k = 0
+  while m >= 2.0 {
+    m = m / 2.0
+    k = k + 1
+  }
+  while m < 1.0 {
+    m = m * 2.0
+    k = k - 1
+  }
+  let y = 0.0
+  let i = 0
+  while i < 40 {
+    y = y + m / pow(EULER, y) - 1.0
+    i = i + 1
+  }
+  return y + float(k) * LN2
+}
+
+func normalize_probs(a: [f64]) -> [f64] {
+  let out = []
+  let n = len(a)
+  guard n > 0 else {
+    return out
+  }
+  let total = sum(a)
+  if total <= 0.0 {
+    let i = 0
+    while i < n {
+      array_push(out, 0.0)
+      i = i + 1
+    }
+    return out
+  }
+  for v in a {
+    array_push(out, v / total)
+  }
+  return out
+}
+
+func entropy(probs: [f64]) -> f64 {
+  let norm = normalize_probs(probs)
+  let h = 0.0
+  for p in norm {
+    if p > 0.0 {
+      h = h - p * ln_appx(p)
+    }
+  }
+  return h
+}
+
+func chi_square_goodness(observed: [f64], expected: [f64]) -> f64 {
+  let n = len(observed)
+  let m = len(expected)
+  guard n > 0 && m > 0 else {
+    return 0.0
+  }
+  let limit = min(n, m)
+  let total = 0.0
+  let i = 0
+  while i < limit {
+    let e = expected[i]
+    if e != 0.0 {
+      let diff = observed[i] - e
+      total = total + diff * diff / e
+    }
+    i = i + 1
+  }
+  return total
+}
